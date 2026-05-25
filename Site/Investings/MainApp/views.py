@@ -28,7 +28,7 @@ def Main(request):
             pric.append([prices['ID'][i], prices['Name'][i], prices['VunitRate'][i]])
         bal = 0
         if request.user.is_authenticated:
-            bal = get_object_or_404(userB.objects.all(), pk=request.user).balance
+            bal = userB.objects.get(pk=request.user).balance
         return render(request, 'htmls/main.html', {'prices': pric, 'balance': bal})
 
 

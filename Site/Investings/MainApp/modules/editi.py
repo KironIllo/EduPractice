@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import logout, authenticate
+from MainApp.models import userB
 
 def Edit(request):
     if request.method == 'POST':
@@ -10,7 +11,8 @@ def Edit(request):
             return redirect('profile')
     else:
         form = PasswordChangeForm(None)
-    return render(request, 'htmls/edit.html', {'form': form})
+    bal = userB.objects.get(pk=request.user).balance
+    return render(request, 'htmls/edit.html', {'form': form, 'balance': bal})
 
 def Delete(request):
     if request.method == 'POST':
@@ -19,4 +21,5 @@ def Delete(request):
             logout(request)
             user.delete()
             return redirect('home')
-    return render(request, 'htmls/delete.html')
+    bal = userB.objects.get(pk=request.user).balance
+    return render(request, 'htmls/delete.html', {'balance': bal})

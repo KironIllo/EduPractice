@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_list_or_404, redirect, get_object_or_404
+from django.shortcuts import render, get_list_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from MainApp.models import Transaction, userB
 from MainApp.forms import transactionForm
@@ -11,16 +11,19 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 @login_required(login_url="login/")
 def Profile(request):
-    return render(request, 'htmls/profile.html', {'time' : dt.datetime.now})
+    bal = userB.objects.get(pk=request.user).balance
+    return render(request, 'htmls/profile.html', {'time' : dt.datetime.now, 'balance': bal})
 
 @login_required(login_url="login/")
 def History(request):
     tran = Transaction.objects.all()
     if tran.count() != 0:
         tran = get_list_or_404(tran, user=request.user)
-    return render(request, 'htmls/history.html', {'hist': tran})
+    bal = userB.objects.get(pk=request.user).balance
+    return render(request, 'htmls/history.html', {'hist': tran, 'balance': bal})
 
 def Buy(request, ID):
+    bal = userB.objects.get(pk=request.user).balance
     if request.method == 'POST':
         form = transactionForm(data=request.POST)
         if form.is_valid():
@@ -43,7 +46,8 @@ def Buy(request, ID):
         price_data = get_currency_price(ID)
         if not price_data:
             return render(request, 'htmls/error.html', {
-                'error': 'Не удалось получить данные о валюте'
+                'error': 'Не удалось получить данные о валюте',
+                'balance': bal
             })
 
         form = transactionForm()
@@ -53,9 +57,10 @@ def Buy(request, ID):
         form.fields['price'].initial = round(float(price_data['rate']), 2)
         form.fields['endprice'].initial = round(float(price_data['rate']), 2)
 
-    return render(request, 'htmls/buy.html', {'name': price_data['name'], 'form': form})
+    return render(request, 'htmls/buy.html', {'name': price_data['name'], 'form': form, 'balance': bal})
 
 def Sell(request, ID):
+    bal = userB.objects.get(pk=request.user).balance
     if request.method == 'POST':
         form = transactionForm(data=request.POST)
         if form.is_valid():
@@ -77,7 +82,8 @@ def Sell(request, ID):
         price_data = get_currency_price(ID)
         if not price_data:
             return render(request, 'htmls/error.html', {
-                'error': 'Не удалось получить данные о валюте'
+                'error': 'Не удалось получить данные о валюте',
+                'balance': bal
             })
 
         form = transactionForm()
@@ -87,8 +93,15 @@ def Sell(request, ID):
         form.fields['price'].initial = round(float(price_data['rate']), 2)
         form.fields['endprice'].initial = round(float(price_data['rate']), 2)
 
-    return render(request, 'htmls/sell.html', {'name': price_data['name'], 'form': form})
+    return render(request, 'htmls/sell.html', {'name': price_data['name'], 'form': form, 'balance': bal})
 
 def Balance(request):
-    user = request.user
+    user = userB.objects.get(pk=request.user)
+    if request.method == 'POST':
+        print(request.POST)
+        if request.POST['income']:
+            user.balance += int(request.POST['income'])
+            user.save()
+            return redirect('/')
+
     return render(request, 'htmls/balance.html', {'balance': user.balance})

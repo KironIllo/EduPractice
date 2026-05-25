@@ -1,8 +1,8 @@
 #Python == 3.14.5
-Pandas == 3.0.2
-Numpy == 2.4.6
-Requests == 2.33.1
-Websocket-client == 1.9.0
-PyQuery == 2.0.1
-Pyinvesting == 0.31 
+Pandas
+Numpy
+Requests
+Websocket-client
+PyQuery
+Pyinvesting
 django-mathfilters
