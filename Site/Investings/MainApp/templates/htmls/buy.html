@@ -1,0 +1,22 @@
+{% extends 'htmls/main.html' %}
+
+{% block content %}
+
+{{name}}
+
+<form method="post">  
+    {% csrf_token %}  
+    {% if form.errors %}  
+        <div class="alert alert-danger">  
+            {{ form.errors }}  
+        </div>  
+    {% endif %}
+    {% for field in form %}  
+        <p class="form-label">{{ field.label }}</p>  
+        <p>{{ field }}</p>
+    {% endfor %}  
+    <button type="submit" class="btn btn-outline-success">Сохранить</button>  
+    <a href="/profile">Отмена</a> 
+</form>
+
+{% endblock %}

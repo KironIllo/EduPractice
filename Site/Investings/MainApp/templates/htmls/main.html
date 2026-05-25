@@ -16,15 +16,14 @@
     <div><a href="{% url 'home' %}">Главная</a></div>
     <div>
         <a href="{% url 'history' %}">История</a>
-        <a href="{% url 'profile' %}">Профиль</a>
-    </div>
         {% if user.is_authenticated %}
-        {{ user }}
+        <a href="{% url 'profile' %}">{{ user }}</a>
         <a href="{% url 'logout' %}">Выход</a>
         {% else %}
         <a href="{% url 'signup' %}">Регистрация</a>
         <a href="{% url 'login' %}">Вход</a>
         {% endif %}
+    </div>
 </header>
 
 <body>
@@ -35,16 +34,18 @@
     
     <li>
         <div>
-        <p>{{ value.0 }}</p>
         <p>{{ value.1 }}</p>
+        <p>{{ value.2 }}</p>
         </div>
         <div>
+            {% if user.is_authenticated %}
             <button>
-                Купить
+                <a href="{% url 'buy' value.0 %}">Купить</a>
             </button>
             <button>
                 Продать
             </button>
+            {% endif %}
         </div>
     </li>
 

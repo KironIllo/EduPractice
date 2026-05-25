@@ -12,6 +12,5 @@ def Main(request):
     prices = pd.read_xml(url, encoding='Windows-1251').to_dict()
     pric = []
     for i in prices["ID"]:
-        pric += [[prices['Name'][i], prices['VunitRate'][i]]]
-    print(pric[0])
+        pric += [[prices['ID'][i], prices['Name'][i], prices['VunitRate'][i]]]
     return render(request, 'htmls/main.html', {'prices': pric})

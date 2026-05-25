@@ -32,4 +32,5 @@ urlpatterns = [
     path('edit', editi.Edit, name='edit'),
     path('history', profile.History, name='history'),
     path('delete', editi.Delete, name='delete'),
+    path('buy/<str:ID>', profile.Buy, name='buy'),
 ] + static(STATIC_URL)
