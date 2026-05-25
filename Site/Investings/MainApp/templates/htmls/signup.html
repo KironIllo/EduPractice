@@ -8,32 +8,31 @@
 {% block login %}
 <div id="log">
     <h2>Регистрация</h2>
-
+    {% csrf_token %}
     {% if not show_verification %}
-        <p>Заполните форму для регистрации</p>
-        <form method="post">
-            {% csrf_token %}
-            {% for field in form %}
-                <div class="form-group">
-                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}:</label>
+    <p>Заполните форму для регистрации</p>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}:</label>
             {{ field }}
             {% if field.errors %}
-                <div class="form-error">{{ field.errors }}</div>
+            <div class="form-error">{{ field.errors }}</div>
             {% endif %}
         </div>
-    {% endfor %}
+        {% endfor %}
 
-    <!-- ПОЛЕ EMAIL -->
-    <div class="form-group">
-        <label class="form-label" for="id_email">Email:</label>
-        <input type="email" name="email" id="id_email" required class="form-input"
-               placeholder="example@domain.com">
-    </div>
+        <!-- ПОЛЕ EMAIL -->
+        <div class="form-group">
+            <label class="form-label" for="id_email">Email:</label>
+            <input type="email" name="email" id="id_email" required class="form-input" placeholder="example@domain.com">
+        </div>
 
-    <button type="submit" name="send_code" class="btn">Отправить код подтверждения</button>
-    <a href="/" class="btn-cancel">Отмена</a>
-</form>
-{% else %}
+        <button type="submit" name="send_code" class="btn">Отправить код подтверждения</button>
+        <a href="/" class="btn-cancel">Отмена</a>
+    </form>
+    {% else %}
     <p>Код отправлен на email: <strong>{{ email }}</strong></p>
     <form method="post">
         {% csrf_token %}
@@ -52,20 +51,20 @@
     </form>
 
     {% if error %}
-        <div class="form-error" style="color: red; margin-top: 10px;">{{ error }}</div>
+    <div class="form-error" style="color: red; margin-top: 10px;">{{ error }}</div>
     {% endif %}
-{% endif %}
+    {% endif %}
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const resendButton = document.getElementById('resend-code');
-    if (resendButton) {
-        resendButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelector('[name="send_code"]').click();
-        });
-    }
-});
+    document.addEventListener('DOMContentLoaded', function () {
+        const resendButton = document.getElementById('resend-code');
+        if (resendButton) {
+            resendButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector('[name="send_code"]').click();
+            });
+        }
+    });
 </script>
 {% endblock %}
