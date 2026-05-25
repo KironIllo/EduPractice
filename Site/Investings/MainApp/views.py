@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 import datetime as dt
-import cbrapi as cbr
+#import cbrapi as cbr
 
 def Main(request):
     return render(request, 'htmls/main.html')

@@ -7,15 +7,65 @@
 
 {% block login %}
 <div id="log">
-<p>Регистрация</p>
-<form method="post">
-{% csrf_token %}
-{% for f in form %}
-    <p ><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>
-    <div class="form-error">{{ f.errors }}</div>
+    <h2>Регистрация</h2>
+
+    {% if not show_verification %}
+        <p>Заполните форму для регистрации</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}:</label>
+            {{ field }}
+            {% if field.errors %}
+                <div class="form-error">{{ field.errors }}</div>
+            {% endif %}
+        </div>
     {% endfor %}
-<button type="submit">Ок</button>
-<a href="/">Отмена</a> 
+
+    <!-- ПОЛЕ EMAIL -->
+    <div class="form-group">
+        <label class="form-label" for="id_email">Email:</label>
+        <input type="email" name="email" id="id_email" required class="form-input"
+               placeholder="example@domain.com">
+    </div>
+
+    <button type="submit" name="send_code" class="btn">Отправить код подтверждения</button>
+    <a href="/" class="btn-cancel">Отмена</a>
 </form>
+{% else %}
+    <p>Код отправлен на email: <strong>{{ email }}</strong></p>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="username" value="{{ form.data.username }}">
+        <input type="hidden" name="password1" value="{{ form.data.password1 }}">
+        <input type="hidden" name="password2" value="{{ form.data.password2 }}">
+        <input type="hidden" name="email" value="{{ email }}">
+
+        <div class="form-group">
+            <label for="verification_code">Код подтверждения:</label>
+            <input type="text" name="verification_code" id="verification_code" required class="form-input">
+        </div>
+
+        <button type="submit" name="verify_code" class="btn">Подтвердить регистрацию</button>
+        <a href="#" class="btn-resend" id="resend-code">Выслать код ещё раз</a>
+    </form>
+
+    {% if error %}
+        <div class="form-error" style="color: red; margin-top: 10px;">{{ error }}</div>
+    {% endif %}
+{% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const resendButton = document.getElementById('resend-code');
+    if (resendButton) {
+        resendButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector('[name="send_code"]').click();
+        });
+    }
+});
+</script>
 {% endblock %}
