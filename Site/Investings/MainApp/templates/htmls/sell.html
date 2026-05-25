@@ -41,7 +41,7 @@
 
 <script>
     document.getElementsByName('count')[0].onchange = function(){
-        document.getElementsByName('endprice')[0].value = document.getElementsByName('count')[0].value * document.getElementsByName('price')[0].value
+        document.getElementsByName('endprice')[0].value = Math.round(document.getElementsByName('count')[0].value * document.getElementsByName('price')[0].value*100,2)/100
     }
 </script>
 {% endblock %}

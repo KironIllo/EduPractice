@@ -12,29 +12,68 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 @login_required(login_url="login/")
 def Profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    transatcions = Transaction.objects.filter(user=request.user).order_by('money')
-    monid = transatcions[0].moneyid
-    mon = transatcions[0].money
-    portfel = []
-    money = 0.0
-    price_data = float(get_currency_price(monid)['rate'])
-    for tran in transatcions:
-        if tran.moneyid == monid:
-            if tran.transaction_type == 'buy':
-                money += float(tran.count)
-            else:
-                money -= float(tran.count)
-        else:
-            if (money != 0):
-                portfel += [[mon, money, round(money * price_data,2)]]
-            monid = tran.moneyid
-            mon = tran.money
-            price_data = float(get_currency_price(monid)['rate'])
-            money = 0
-            money += float(tran.count)
-    if (money != 0):
-        portfel += [[mon, money, round(money * price_data,2)]]
-    return render(request, 'htmls/profile.html', {'time': dt.datetime.now, 'balance': profile.balance, 'portfel': portfel})
+    
+    # Получаем все покупки пользователя
+    purchases = Transaction.objects.filter(user=request.user, transaction_type='buy')
+    sales = Transaction.objects.filter(user=request.user, transaction_type='sell')
+    
+    # Рассчитываем текущий портфель
+    portfolio = {}
+    
+    for purchase in purchases:
+        money_id = purchase.moneyid
+        if money_id not in portfolio:
+            portfolio[money_id] = {
+                'name': purchase.money,
+                'quantity': 0,
+                'total_cost': 0
+            }
+        portfolio[money_id]['quantity'] += float(purchase.count)
+        portfolio[money_id]['total_cost'] += float(purchase.endprice)
+    
+    for sale in sales:
+        money_id = sale.moneyid
+        if money_id in portfolio:
+            portfolio[money_id]['quantity'] -= float(sale.count)
+            if portfolio[money_id]['quantity'] <= 0:
+                del portfolio[money_id]
+    
+    # Получаем текущие цены и считаем стоимость
+    portfel_list = []
+    total_portfolio_value = 0
+    
+    for money_id, data in portfolio.items():
+        price_data = get_currency_price(money_id)
+        if price_data:
+            current_price = float(price_data['rate'])
+            current_value = data['quantity'] * current_price
+            avg_price = data['total_cost'] / data['quantity'] if data['quantity'] > 0 else 0
+            profit = current_value - data['total_cost']
+            profit_percent = (profit / data['total_cost']) * 100 if data['total_cost'] > 0 else 0
+            
+            portfel_list.append({
+                'name': data['name'],
+                'quantity': data['quantity'],
+                'avg_price': avg_price,
+                'current_value': current_value,
+                'profit': profit,
+                'profit_percent': profit_percent,
+                'portfolio_share': 0  # пока 0, позже пересчитаем
+            })
+            total_portfolio_value += current_value
+    
+    # Пересчитываем доли
+    if total_portfolio_value > 0:
+        for item in portfel_list:
+            item['portfolio_share'] = (item['current_value'] / total_portfolio_value) * 100
+    
+    return render(request, 'htmls/profile.html', {
+        'time': dt.datetime.now(),
+        'balance': profile.balance,
+        'portfel': portfel_list,
+        'portfolio_count': len(portfel_list),
+        'transactions_count': purchases.count() + sales.count()
+    })
 
 @login_required(login_url="login/")
 def History(request):
@@ -58,8 +97,8 @@ def Buy(request, ID):
             transaction = form.save(commit=False)
             transaction.user = request.user
 
-            transaction.price = round(float(transaction.price), 2)
-            transaction.endprice = round(float(transaction.count) * transaction.price, 2)
+            transaction.price = float(transaction.price)
+            transaction.endprice = float(transaction.count) * transaction.price
             transaction.transaction_type = 'buy'
 
             endprice_decimal = Decimal(str(transaction.endprice))
@@ -89,8 +128,8 @@ def Buy(request, ID):
             'user': request.user,
             'moneyid': price_data['id'],
             'money': price_data['name'],
-            'price': round(Decimal(price_data['rate']), 2),
-            'endprice': round(Decimal(price_data['rate']), 2),
+            'price': Decimal(price_data['rate']),
+            'endprice': Decimal(price_data['rate']),
             'transaction_type': 'buy'
         })
 
@@ -115,8 +154,8 @@ def Sell(request, ID):
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.user = request.user
-            transaction.price = abs(round(float(transaction.price), 2))
-            transaction.endprice = abs(round(float(transaction.count) * transaction.price, 2))
+            transaction.price = abs(float(transaction.price))
+            transaction.endprice = abs(float(transaction.count) * transaction.price)
             transaction.transaction_type = 'sell'
 
             # Проверка: есть ли у пользователя такая валюта для продажи?
@@ -153,8 +192,8 @@ def Sell(request, ID):
             'user': request.user,
             'moneyid': price_data['id'],
             'money': price_data['name'],
-            'price': round(float(price_data['rate']), 2),
-            'endprice': round(float(price_data['rate']), 2),
+            'price': float(price_data['rate']),
+            'endprice': float(price_data['rate']),
             'transaction_type': 'sell'
         })
 

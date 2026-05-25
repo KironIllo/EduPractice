@@ -1,25 +1,127 @@
 {% extends 'htmls/main.html' %}
 
 {% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="profile-info">
+            <h1>{{ user.username }}</h1>
+            <p class="profile-email">{{ user.email }}</p>
+            <div class="profile-balance">
+                <span class="balance-label">Баланс счета:</span>
+                <span class="balance-value">{{ balance|floatformat:2 }} ₽</span>
+            </div>
+        </div>
+    </div>
 
-<p>Сейчас открыт профиль</p>
+    <div class="profile-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Доходность портфеля</span>
+                <span class="stat-value {{ profitability_class|default:'neutral' }}">{{ profitability|default:"0" }}%</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Активов в портфеле</span>
+                <span class="stat-value">{{ portfolio_count|default:"0" }}</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Всего операций</span>
+                <span class="stat-value">{{ transactions_count|default:"0" }}</span>
+            </div>
+        </div>
+    </div>
 
-{% block confirm %}
-{% if portfel %}
-<div>
-{% for prof in portfel %}
-<p>{{ prof.0 }} в количестве {{ prof.1 }}</p>
-<p>Ценность на данный момент {{ prof.2 }}</p>
-{% endfor %}
+    {% if portfel %}
+    <div class="portfolio-section">
+        <h2><i class="fas fa-briefcase"></i> Мой портфель</h2>
+        <div class="portfolio-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Актив</th>
+                        <th>Количество</th>
+                        <th>Средняя цена</th>
+                        <th>Текущая стоимость</th>
+                        <th>Прибыль/убыток</th>
+                        <th>Доля в портфеле</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prof in portfel %}
+                    <tr>
+                        <td><strong>{{ prof.name }}</strong></td>
+                        <td>{{ prof.quantity|floatformat:2 }}</td>
+                        <td>{{ prof.avg_price|floatformat:2 }} ₽</td>
+                        <td>{{ prof.current_value|floatformat:2 }} ₽</td>
+                        <td class="{% if prof.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            {% if prof.profit >= 0 %}+{% endif %}{{ prof.profit|floatformat:2 }} ₽
+                            ({% if prof.profit_percent >= 0 %}+{% endif %}{{ prof.profit_percent|floatformat:1 }}%)
+                        </td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ prof.portfolio_share }}%;"></div>
+                                <span class="progress-text">{{ prof.portfolio_share|floatformat:1 }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-portfolio">
+        <i class="fas fa-folder-open"></i>
+        <p>Ваш портфель пуст</p>
+        <a href="{% url 'home' %}" class="btn btn-primary">Начать инвестировать</a>
+    </div>
+    {% endif %}
+
+    <div class="profile-actions">
+        <h3><i class="fas fa-cog"></i> Настройки аккаунта</h3>
+        <div class="actions-grid">
+            <a href="{% url 'edit' %}" class="action-card">
+                <i class="fas fa-user-edit"></i>
+                <span>Редактировать профиль</span>
+                <small>Изменить личные данные</small>
+            </a>
+            <a href="{% url 'balance' %}" class="action-card">
+                <i class="fas fa-wallet"></i>
+                <span>Пополнить баланс</span>
+                <small>Управление средствами</small>
+            </a>
+            <a href="#" class="action-card" onclick="return false;">
+                <i class="fas fa-bell"></i>
+                <span>Уведомления</span>
+                <small>Настройка оповещений</small>
+            </a>
+            <a href="{% url 'delete' %}" class="action-card delete-card">
+                <i class="fas fa-trash-alt"></i>
+                <span>Удалить аккаунт</span>
+                <small>Безвозвратное удаление</small>
+            </a>
+        </div>
+    </div>
+
+    <div class="profile-time">
+        <i class="fas fa-clock"></i>
+        <span>{{ time|date:"d.m.Y" }} {{ time|time:"H:i" }}</span>
+    </div>
 </div>
-{% else %}
-<p>Портфель пуст</p>
-{% endif %}
-<a href="edit">Редактирование</a>
-<a href="delete">Удалить</a>
-{{ time.date }}
-<p>{{ time.hour }} : {{ time.minute }}</p>
-
-{% endblock %}
-
+{% block confirm %}{% endblock %}
 {% endblock %}

@@ -21,7 +21,7 @@ def Main(request):
 
         pric = []
         for i in prices["ID"]:
-            pric.append([prices['ID'][i], prices['Name'][i], round(float(prices['VunitRate'][i].replace(',','.')),2)])
+            pric.append([prices['ID'][i], prices['Name'][i], float(prices['VunitRate'][i].replace(',','.'))])
         
         bal = 0
         if request.user.is_authenticated:
