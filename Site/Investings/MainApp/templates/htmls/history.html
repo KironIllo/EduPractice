@@ -7,10 +7,10 @@
 {{i.money}}
 <div style="display: flex; flex-direction: row; height: fit-content; align-items: center;">
 {% if i.endprice > 0 %}
-<p style="color: green; font-weight: 800; font-size: 2vw; height: fit-content; margin: 0;">+</p>
+<p style="color: green; font-weight: 800; font-size: 1.2vw; height: fit-content; margin: 0;">+</p>
 {{ i.endprice }}
 {% else %}
-<p style="color: red">-</p>
+<p style="color: red; font-weight: 800; font-size: 1.2vw; height: fit-content; margin: 0">-</p>
 {{ i.endprice|mul:"-1" }}
 {% endif %}
 </div>

@@ -33,4 +33,6 @@ urlpatterns = [
     path('history', profile.History, name='history'),
     path('delete', editi.Delete, name='delete'),
     path('buy/<str:ID>', profile.Buy, name='buy'),
+    path('sell/<str:ID>', profile.Sell, name='sell'),
+    path('balance', profile.Balance, name='balance'),
 ] + static(STATIC_URL)

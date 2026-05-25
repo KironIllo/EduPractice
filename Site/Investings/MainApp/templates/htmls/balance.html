@@ -1,0 +1,27 @@
+{% extends 'htmls/main.html' %}
+
+{% block content %}
+
+<ul>
+    <input type="radio" name="income" id="100"><label for="100">100</label>
+    <input type="radio" name="income" id="500"><label for="500">500</label>
+    <input type="radio" name="income" id="1000"><label for="1000">1000</label>
+    <input type="radio" name="income" id="5000"><label for="5000">5000</label>
+    <input type="radio" name="income" id="10000"><label for="10000">10000</label>
+</ul>
+<form method="post">  
+    {% csrf_token %}  
+    {% if form.errors %}  
+        <div class="alert alert-danger">  
+            {{ form.errors }}  
+        </div>  
+    {% endif %}
+    {% for field in form %}       
+            <p class="form-label">{{ field.label }}</p>
+            <p>{{ field }}</p>
+    {% endfor %}  
+    <button type="submit" class="btn btn-outline-success">Сохранить</button>  
+    <a href="/">Отмена</a> 
+</form>
+
+{% endblock %}
