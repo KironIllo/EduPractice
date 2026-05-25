@@ -1,7 +1,12 @@
 {% extends 'htmls/main.html' %}
 
+{% block style %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/log.css' %}">
+{% endblock %}
+
 {% block login %}
-<div id="reg">
+<div id="log">
 <p>Регистрация</p>
 <form method="post">
 {% csrf_token %}
@@ -10,6 +15,7 @@
     <div class="form-error">{{ f.errors }}</div>
     {% endfor %}
 <button type="submit">Ок</button>
+<a href="/">Отмена</a> 
 </form>
 </div>
 {% endblock %}
