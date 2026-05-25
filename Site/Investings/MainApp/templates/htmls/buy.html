@@ -2,8 +2,6 @@
 
 {% block content %}
 
-{{name}}
-
 <form method="post">  
     {% csrf_token %}  
     {% if form.errors %}  
@@ -11,12 +9,19 @@
             {{ form.errors }}  
         </div>  
     {% endif %}
-    {% for field in form %}  
-        <p class="form-label">{{ field.label }}</p>  
-        <p>{{ field }}</p>
+    {% for field in form %}
+        {% if field.name != 'moneyid' and field.name != 'user' %}
+            <p class="form-label">{{ field.label }}</p>
+        {% endif %}
+            <p>{{ field }}</p>
     {% endfor %}  
     <button type="submit" class="btn btn-outline-success">Сохранить</button>  
-    <a href="/profile">Отмена</a> 
+    <a href="/">Отмена</a> 
 </form>
 
+<script>
+    document.getElementsByName('count')[0].onchange = function(){
+        document.getElementsByName('endprice')[0].value = document.getElementsByName('count')[0].value * document.getElementsByName('price')[0].value
+    }
+</script>
 {% endblock %}

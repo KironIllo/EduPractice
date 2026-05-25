@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_list_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from MainApp.models import Transaction
 from MainApp.forms import transactionForm
 import datetime as dt
 import requests
@@ -10,7 +11,10 @@ def Profile(request):
 
 @login_required(login_url="login/")
 def History(request):
-    return render(request, 'htmls/history.html')
+    tran = Transaction.objects.all()
+    if tran.count() != 0:
+        tran = get_list_or_404(tran, user=request.user)
+    return render(request, 'htmls/history.html', {'hist': tran})
 
 def Buy(request, ID):
     if request.method == 'POST':
@@ -32,4 +36,9 @@ def Buy(request, ID):
         if prices['ID'][i] == ID:
             pric += [prices['ID'][i], prices['Name'][i], prices['VunitRate'][i]]
     form = transactionForm()
-    return render(request, 'htmls/buy.html',{'name':pric, 'form':form})
+    form['user'].initial = request.user
+    form['moneyid'].initial = pric[0]
+    form['money'].initial = pric[1]
+    form['price'].initial = str(pric[2]).replace(',', '.')
+    form['endprice'].initial = form['price'].initial
+    return render(request, 'htmls/buy.html',{'name':pric[1], 'form':form})

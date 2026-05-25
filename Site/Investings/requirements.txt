@@ -5,3 +5,4 @@ Requests == 2.33.1
 Websocket-client == 1.9.0
 PyQuery == 2.0.1
 Pyinvesting == 0.31
+django-mathfilters
