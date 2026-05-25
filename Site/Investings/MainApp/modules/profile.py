@@ -85,7 +85,7 @@ def History(request):
         'balance': profile.balance
     })
 
-
+@login_required(login_url="login/")
 def Buy(request, ID):
     """Покупка валюты с учётом номинала"""
     profile, _ = Profile.objects.get_or_create(user=request.user)
@@ -158,7 +158,7 @@ def Buy(request, ID):
             'step': step
         })
 
-
+@login_required(login_url="login/")
 def Sell(request, ID):
     """Продажа валюты с учётом номинала и доступного остатка"""
     profile, _ = Profile.objects.get_or_create(user=request.user)

@@ -30,6 +30,8 @@ urlpatterns = [
     path('', views.Main, name='home'),
     path('signup/', regi.signup, name='signup'),
     path('login/', logi.login_view, name='login'),
+    path('buy/login/', logi.login_view),
+    path('sell/login/', logi.login_view),
     path('logout/', logi.logout_view, name='logout'),
     path('profile', profile.Profile_view, name='profile'),
     path('edit', editi.Edit, name='edit'),
