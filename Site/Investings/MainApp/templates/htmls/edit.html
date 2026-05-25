@@ -1,8 +1,6 @@
 {% extends 'htmls/main.html' %}
 
 {% block content %}
-<p>Пользователь {{ user }}</p>
-<p>Пароль {{ user.password }}</p>
 {% endblock %}
 
 {% block login %}
@@ -10,9 +8,9 @@
 <p>Редактирование</p>
 <form method="post">  
     {% csrf_token %}  
-    {% if form.non_field_errors %}  
+    {% if form.errors %}  
         <div class="alert alert-danger">  
-            {{ form.non_field_errors }}  
+            {{ form.errors }}  
         </div>  
     {% endif %}  
     {% for field in form %}  
@@ -20,7 +18,7 @@
         <p>{{ field }}</p>  
     {% endfor %}  
     <button type="submit" class="btn btn-outline-success">Сохранить</button>  
-    <a href="/">Отмена</a> 
+    <a href="/profile">Отмена</a> 
 </form>
 </div>
 {% endblock %}
