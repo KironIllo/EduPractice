@@ -18,9 +18,13 @@
         <a href="{% url 'history' %}">История</a>
         <a href="{% url 'profile' %}">Профиль</a>
     </div>
+        {% if user.is_authenticated %}
+        {{ user }}
+        <a href="{% url 'logout' %}">Выход</a>
+        {% else %}
         <a href="{% url 'signup' %}">Регистрация</a>
         <a href="{% url 'login' %}">Вход</a>
-        <a href="{% url 'logout' %}">Выход</a>
+        {% endif %}
 </header>
 
 <body>
@@ -28,7 +32,8 @@
 {% block content %}
 <p>Сейчас открыта главная страница</p>
 {% endblock %}
-
+{% block login %}
+{% endblock %}
 </div>
 </body>
 

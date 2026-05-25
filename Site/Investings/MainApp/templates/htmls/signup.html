@@ -1,6 +1,7 @@
 {% extends 'htmls/main.html' %}
 
-{% block content %}
+{% block login %}
+<div id="reg">
 <p>Регистрация</p>
 <form method="post">
 {% csrf_token %}
@@ -10,4 +11,5 @@
     {% endfor %}
 <button type="submit">Ок</button>
 </form>
+</div>
 {% endblock %}

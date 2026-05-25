@@ -1,13 +1,13 @@
 {% extends 'htmls/main.html' %}
 
-{% block style %}
-{% load static %}
-<link rel="stylesheet" href="{% static 'css/log.css' %}">
+{% block content %}
+<p>Пользователь {{ user }}</p>
+<p>Пароль {{ user.password }}</p>
 {% endblock %}
 
 {% block login %}
 <div id="log">
-<p>Вход</p>
+<p>Редактирование</p>
 <form method="post">  
     {% csrf_token %}  
     {% if form.non_field_errors %}  
@@ -19,7 +19,7 @@
         <p class="form-label">{{ field.label }}</p>  
         <p>{{ field }}</p>  
     {% endfor %}  
-    <button type="submit" class="btn btn-outline-success">Войти</button>  
+    <button type="submit" class="btn btn-outline-success">Сохранить</button>  
     <a href="/">Отмена</a> 
 </form>
 </div>
