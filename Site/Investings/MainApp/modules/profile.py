@@ -94,5 +94,4 @@ def Sell(request, ID):
 
 def Balance(request):
     ua = get_object_or_404(userB.objects.all(), pk=request.user)
-    print(ua.balance)
     return render(request,'htmls/balance.html')
