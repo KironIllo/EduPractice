@@ -11,9 +11,9 @@ class Transaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
     moneyid = models.CharField(max_length=100)
     money = models.CharField(max_length=200)
-    count = models.FloatField(max_length=100, validators=[validators.MinValueValidator(0.1)], default=1)
-    price = models.FloatField(max_length=100)
-    endprice = models.FloatField(max_length=100)
+    count = models.DecimalField(max_digits=10, decimal_places=2, validators=[validators.MinValueValidator(0.01)], default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    endprice = models.DecimalField(max_digits=10, decimal_places=2)
     transaction_type = models.CharField(max_length=4, choices=TRANSACTION_TYPES)
     created_at = models.DateTimeField(auto_now_add=True)
 

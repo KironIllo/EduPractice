@@ -21,19 +21,19 @@ def Profile_view(request):
     for tran in transatcions:
         if tran.moneyid == monid:
             if tran.transaction_type == 'buy':
-                money += tran.count
+                money += float(tran.count)
             else:
-                money -= tran.count
+                money -= float(tran.count)
         else:
             if (money != 0):
-                portfel += [[mon, money, money * price_data]]
+                portfel += [[mon, money, round(money * price_data,2)]]
             monid = tran.moneyid
             mon = tran.money
             price_data = float(get_currency_price(monid)['rate'])
             money = 0
-            money += tran.count
+            money += float(tran.count)
     if (money != 0):
-        portfel += [[mon, money, money * price_data]]
+        portfel += [[mon, money, round(money * price_data,2)]]
     return render(request, 'htmls/profile.html', {'time': dt.datetime.now, 'balance': profile.balance, 'portfel': portfel})
 
 @login_required(login_url="login/")
@@ -57,8 +57,9 @@ def Buy(request, ID):
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.user = request.user
+
             transaction.price = round(float(transaction.price), 2)
-            transaction.endprice = round(transaction.count * transaction.price, 2)
+            transaction.endprice = round(float(transaction.count) * transaction.price, 2)
             transaction.transaction_type = 'buy'
 
             endprice_decimal = Decimal(str(transaction.endprice))
@@ -88,8 +89,8 @@ def Buy(request, ID):
             'user': request.user,
             'moneyid': price_data['id'],
             'money': price_data['name'],
-            'price': round(float(price_data['rate']), 2),
-            'endprice': round(float(price_data['rate']), 2),
+            'price': round(Decimal(price_data['rate']), 2),
+            'endprice': round(Decimal(price_data['rate']), 2),
             'transaction_type': 'buy'
         })
 
@@ -115,7 +116,7 @@ def Sell(request, ID):
             transaction = form.save(commit=False)
             transaction.user = request.user
             transaction.price = abs(round(float(transaction.price), 2))
-            transaction.endprice = abs(round(transaction.count * transaction.price, 2))
+            transaction.endprice = abs(round(float(transaction.count) * transaction.price, 2))
             transaction.transaction_type = 'sell'
 
             # Проверка: есть ли у пользователя такая валюта для продажи?
