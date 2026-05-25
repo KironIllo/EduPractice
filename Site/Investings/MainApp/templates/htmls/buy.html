@@ -5,43 +5,88 @@
 {% if form.non_field_errors %}
 <div class="alert alert-danger" role="alert">
     {% for error in form.non_field_errors %}
-        <strong>{{ error }}</strong>
+    <strong>{{ error }}</strong>
     {% endfor %}
 </div>
 {% endif %}
 
-<form method="post">  
-    {% csrf_token %}  
-    
-    {% if form.errors and not form.non_field_errors %}  
-        <div class="alert alert-danger">  
-            {{ form.errors }}  
-        </div>  
+<form method="post">
+    {% csrf_token %}
+
+    {% if form.errors and not form.non_field_errors %}
+    <div class="alert alert-danger">
+        {{ form.errors }}
+    </div>
     {% endif %}
 
-    {% for field in form %}
-        {% if field.name != 'moneyid' and field.name != 'user' and field.name != 'transaction_type' %}
-            <div class="form-group mb-3">
-                <label class="form-label">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                    <div class="alert alert-danger mt-1">
-                        {{ field.errors }}
-                    </div>
-                {% endif %}
-            </div>
-        {% else %}
-            {{ field }}  {# скрытые поля #}
-        {% endif %}
-    {% endfor %}  
+    {# Скрытые поля #}
+    {{ form.user }}
+    {{ form.moneyid }}
+    {{ form.transaction_type }}
 
-    <button type="submit" class="btn btn-outline-success">Купить</button>  
-    <a href="/" class="btn btn-outline-secondary">Отмена</a> 
+    <div class="form-group mb-3">
+        <label class="form-label">Валюта</label>
+        <input type="text" class="form-control" value="{{ name }}" readonly>
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Цена за единицу (₽)</label>
+        <input type="text" class="form-control" name="price" value="{{ form.price.value|floatformat:10 }}" readonly>
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Количество</label>
+        <input type="number" name="count" id="id_count" step="{{ step|stringformat:'f' }}"
+            min="{{ step|stringformat:'f' }}"
+            value="{% if form.count.value %}{{ form.count.value|stringformat:'f' }}{% else %}{{ step|stringformat:'f' }}{% endif %}"
+            class="form-control" required>
+        {% if form.count.errors %}
+        <div class="alert alert-danger mt-1">{{ form.count.errors }}</div>
+        {% endif %}
+        <small class="form-text text-muted">Минимальное количество: {{ step|default:0.01 }}</small>
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Общая стоимость (₽)</label>
+        <input type="text" name="endprice" id="id_endprice" class="form-control" readonly>
+    </div>
+
+    <button type="submit" class="btn btn-outline-success">Купить</button>
+    <a href="/" class="btn btn-outline-secondary">Отмена</a>
 </form>
 
 <script>
-    document.getElementsByName('count')[0].onchange = function(){
-        document.getElementsByName('endprice')[0].value = Math.round(document.getElementsByName('count')[0].value * document.getElementsByName('price')[0].value*100,2)/100
+    const countInput = document.getElementById('id_count');
+    const priceInput = document.querySelector('input[name="price"]');
+    const endpriceInput = document.getElementById('id_endprice');
+    const step = parseFloat(countInput.step);
+
+    function updateEndprice() {
+        let count = parseFloat(countInput.value) || 0;
+        let price = parseFloat(priceInput.value) || 0;
+        let endprice = count * price;
+        endpriceInput.value = endprice.toFixed(2);
     }
+
+    // Проверка кратности – только если шаг > 0.01 (номинал > 1)
+    function validateStep() {
+        if (step <= 0.01) return;  // для обычных валют не проверяем
+        let value = parseFloat(countInput.value);
+        if (Math.abs(value % step) > 0.0001) {
+            alert(`Количество должно быть кратно ${step}`);
+            let newValue = Math.round(value / step) * step;
+            countInput.value = newValue.toFixed(step < 1 ? 2 : 0);
+            updateEndprice();
+        }
+    }
+
+    countInput.addEventListener('change', function () {
+        validateStep();
+        updateEndprice();
+    });
+    countInput.addEventListener('input', updateEndprice);
+    priceInput.addEventListener('change', updateEndprice);
+    window.addEventListener('DOMContentLoaded', updateEndprice);
 </script>
+
 {% endblock %}

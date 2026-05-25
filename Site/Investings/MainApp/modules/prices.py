@@ -49,7 +49,9 @@ def get_currency_price(currency_id):
                 return {
                     'id': prices['ID'][i],
                     'name': prices['Name'][i],
-                    'rate': prices['VunitRate'][i].replace(',', '.')
+                    'rate': prices['VunitRate'][i].replace(',', '.'),
+                    'nominal': int(prices['Nominal'][i]),      # добавляем
+                    'char_code': prices['CharCode'][i]         # добавляем
                 }
 
         logger.warning(f"Валюта с ID {currency_id} не найдена в ответе API")

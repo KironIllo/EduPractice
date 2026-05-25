@@ -17,10 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from MainApp import views
-from MainApp.modules import regi, logi, editi, profile, prices, notifi
+from MainApp.modules import regi, logi, editi, profile, prices, notifi, asset
 
 from django.conf.urls.static import static
 from .settings import STATIC_URL
+
+from MainApp.modules import asset_api
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,4 +38,7 @@ urlpatterns = [
     path('buy/<str:ID>', profile.Buy, name='buy'),
     path('sell/<str:ID>', profile.Sell, name='sell'),
     path('balance', profile.Balance, name='balance'),
+    path('asset/<str:ID>', asset.AssetDetail, name='asset'),  # ← добавить
+    path('api/price/<str:ID>/', asset_api.get_current_price, name='api_price'),
+    path('api/chart-data/<str:ID>/', asset_api.get_chart_data, name='api_chart'),
 ] + static(STATIC_URL)

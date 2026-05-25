@@ -1,56 +1,56 @@
-from django.shortcuts import render, get_list_or_404, redirect
+# profile.py
+from decimal import Decimal
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Q
 from MainApp.models import Transaction, Profile
 from MainApp.forms import transactionForm
 from MainApp.modules.prices import get_currency_price
-from decimal import Decimal
 import datetime as dt
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 @login_required(login_url="login/")
 def Profile_view(request):
+    """Страница профиля с портфелем"""
     profile, _ = Profile.objects.get_or_create(user=request.user)
     
-    # Получаем все покупки пользователя
-    purchases = Transaction.objects.filter(user=request.user, transaction_type='buy')
-    sales = Transaction.objects.filter(user=request.user, transaction_type='sell')
+    # Получаем покупки и продажи пользователя
+    buys = Transaction.objects.filter(user=request.user, transaction_type='buy')
+    sells = Transaction.objects.filter(user=request.user, transaction_type='sell')
     
-    # Рассчитываем текущий портфель
     portfolio = {}
-    
-    for purchase in purchases:
-        money_id = purchase.moneyid
-        if money_id not in portfolio:
-            portfolio[money_id] = {
-                'name': purchase.money,
-                'quantity': 0,
-                'total_cost': 0
+    for b in buys:
+        currency_id = b.moneyid
+        if currency_id not in portfolio:
+            portfolio[currency_id] = {
+                'name': b.money,
+                'quantity': Decimal('0'),
+                'total_cost': Decimal('0')
             }
-        portfolio[money_id]['quantity'] += float(purchase.count)
-        portfolio[money_id]['total_cost'] += float(purchase.endprice)
+        portfolio[currency_id]['quantity'] += b.count
+        portfolio[currency_id]['total_cost'] += b.endprice
+
+    for s in sells:
+        currency_id = s.moneyid
+        if currency_id in portfolio:
+            portfolio[currency_id]['quantity'] -= s.count
+            if portfolio[currency_id]['quantity'] <= 0:
+                del portfolio[currency_id]
     
-    for sale in sales:
-        money_id = sale.moneyid
-        if money_id in portfolio:
-            portfolio[money_id]['quantity'] -= float(sale.count)
-            if portfolio[money_id]['quantity'] <= 0:
-                del portfolio[money_id]
-    
-    # Получаем текущие цены и считаем стоимость
     portfel_list = []
-    total_portfolio_value = 0
-    
-    for money_id, data in portfolio.items():
-        price_data = get_currency_price(money_id)
+    total_portfolio_value = Decimal('0')
+
+    for currency_id, data in portfolio.items():
+        price_data = get_currency_price(currency_id)
         if price_data:
-            current_price = float(price_data['rate'])
+            current_price = Decimal(str(price_data['rate']))
             current_value = data['quantity'] * current_price
-            avg_price = data['total_cost'] / data['quantity'] if data['quantity'] > 0 else 0
+            avg_price = data['total_cost'] / data['quantity'] if data['quantity'] > 0 else Decimal('0')
             profit = current_value - data['total_cost']
-            profit_percent = (profit / data['total_cost']) * 100 if data['total_cost'] > 0 else 0
-            
+            profit_percent = (profit / data['total_cost']) * 100 if data['total_cost'] > 0 else Decimal('0')
             portfel_list.append({
                 'name': data['name'],
                 'quantity': data['quantity'],
@@ -58,32 +58,37 @@ def Profile_view(request):
                 'current_value': current_value,
                 'profit': profit,
                 'profit_percent': profit_percent,
-                'portfolio_share': 0  # пока 0, позже пересчитаем
+                'portfolio_share': 0
             })
             total_portfolio_value += current_value
-    
-    # Пересчитываем доли
+
     if total_portfolio_value > 0:
         for item in portfel_list:
             item['portfolio_share'] = (item['current_value'] / total_portfolio_value) * 100
-    
+
     return render(request, 'htmls/profile.html', {
         'time': dt.datetime.now(),
         'balance': profile.balance,
         'portfel': portfel_list,
         'portfolio_count': len(portfel_list),
-        'transactions_count': purchases.count() + sales.count()
+        'transactions_count': buys.count() + sells.count()
     })
+
 
 @login_required(login_url="login/")
 def History(request):
+    """История операций пользователя"""
     transactions = Transaction.objects.filter(user=request.user).order_by('-created_at')
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    return render(request, 'htmls/history.html', {'hist': transactions, 'balance': profile.balance})
+    return render(request, 'htmls/history.html', {
+        'hist': transactions,
+        'balance': profile.balance
+    })
+
 
 def Buy(request, ID):
+    """Покупка валюты с учётом номинала"""
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    # Получаем данные о валюте ДО проверки метода
     price_data = get_currency_price(ID)
     if not price_data:
         return render(request, 'htmls/error.html', {
@@ -91,56 +96,71 @@ def Buy(request, ID):
             'balance': profile.balance
         })
 
+    nominal = price_data['nominal']
+    # Шаг для ввода количества: если номинал > 1, то шаг = номинал, иначе 0.01
+    step = nominal if nominal > 1 else Decimal('0.01')
+    price = Decimal(str(price_data['rate']))
+
     if request.method == 'POST':
         form = transactionForm(data=request.POST)
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.user = request.user
+            transaction.moneyid = ID
+            transaction.money = price_data['name']
+            transaction.price = price
 
-            transaction.price = float(transaction.price)
-            transaction.endprice = float(transaction.count) * transaction.price
+            count = Decimal(request.POST.get('count', '0'))
+            # Проверка кратности номиналу
+            if count % step != 0:
+                form.add_error('count', f'Количество должно быть кратно {step}')
+                return render(request, 'htmls/buy.html', {
+                    'name': price_data['name'],
+                    'form': form,
+                    'balance': profile.balance,
+                    'step': step
+                })
+
+            transaction.count = count
+            transaction.endprice = count * price
             transaction.transaction_type = 'buy'
 
-            endprice_decimal = Decimal(str(transaction.endprice))
-
-            if profile.balance >= endprice_decimal:
-                profile.balance -= endprice_decimal
+            if profile.balance >= transaction.endprice:
+                profile.balance -= transaction.endprice
                 profile.save()
                 transaction.save()
                 return redirect('history')
             else:
-                # Добавляем ошибку к форме
-                form.add_error(None, '⚠️ Недостаточно средств для покупки!')
-                # Возвращаем форму с ошибкой в тот же шаблон
-                return render(request, 'htmls/buy.html', {
-                    'name': price_data['name'],
-                    'form': form,
-                    'balance': profile.balance
-                })
-        # Если форма невалидна по другим причинам, тоже возвращаем её
+                form.add_error(None, f'⚠️ Недостаточно средств. Требуется: {transaction.endprice} ₽, доступно: {profile.balance} ₽')
+        # Если форма невалидна или ошибка, возвращаем страницу с формой
         return render(request, 'htmls/buy.html', {
             'name': price_data['name'],
             'form': form,
-            'balance': profile.balance
+            'balance': profile.balance,
+            'step': step
         })
     else:
-        form = transactionForm(initial={
+        # GET-запрос – инициализация формы
+        initial_data = {
             'user': request.user,
-            'moneyid': price_data['id'],
+            'moneyid': ID,
             'money': price_data['name'],
-            'price': Decimal(price_data['rate']),
-            'endprice': Decimal(price_data['rate']),
+            'price': price,
+            'endprice': price,
+            'count': step,   # по умолчанию минимальное допустимое количество
             'transaction_type': 'buy'
+        }
+        form = transactionForm(initial=initial_data)
+        return render(request, 'htmls/buy.html', {
+            'name': price_data['name'],
+            'form': form,
+            'balance': profile.balance,
+            'step': step
         })
-
-    return render(request, 'htmls/buy.html', {
-        'name': price_data['name'],
-        'form': form,
-        'balance': profile.balance
-    })
 
 
 def Sell(request, ID):
+    """Продажа валюты с учётом номинала и доступного остатка"""
     profile, _ = Profile.objects.get_or_create(user=request.user)
     price_data = get_currency_price(ID)
     if not price_data:
@@ -149,66 +169,96 @@ def Sell(request, ID):
             'balance': profile.balance
         })
 
+    nominal = price_data['nominal']
+    step = nominal if nominal > 1 else Decimal('0.01')
+    price = Decimal(str(price_data['rate']))
+
+    # Вычисляем доступное количество для продажи
+    bought = Transaction.objects.filter(
+        user=request.user, moneyid=ID, transaction_type='buy'
+    ).aggregate(total=Sum('count'))['total'] or Decimal('0')
+    sold = Transaction.objects.filter(
+        user=request.user, moneyid=ID, transaction_type='sell'
+    ).aggregate(total=Sum('count'))['total'] or Decimal('0')
+    available = bought - sold
+
     if request.method == 'POST':
         form = transactionForm(data=request.POST)
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.user = request.user
-            transaction.price = abs(float(transaction.price))
-            transaction.endprice = abs(float(transaction.count) * transaction.price)
-            transaction.transaction_type = 'sell'
+            transaction.moneyid = ID
+            transaction.money = price_data['name']
+            transaction.price = price
 
-            # Проверка: есть ли у пользователя такая валюта для продажи?
-            from django.db.models import Sum
-            bought = Transaction.objects.filter(
-                user=request.user, 
-                moneyid=ID, 
-                transaction_type='buy'
-            ).aggregate(total=Sum('count'))['total'] or 0
-            
-            sold = Transaction.objects.filter(
-                user=request.user, 
-                moneyid=ID, 
-                transaction_type='sell'
-            ).aggregate(total=Sum('count'))['total'] or 0
-            
-            available = bought - sold
-            
-            if transaction.count > available:
-                form.add_error(None, f'⚠️ У вас нет столько валюты! Доступно: {available}')
+            count = Decimal(request.POST.get('count', '0'))
+            # Проверка кратности номиналу
+            if count % step != 0:
+                form.add_error('count', f'Количество должно быть кратно {step}')
                 return render(request, 'htmls/sell.html', {
                     'name': price_data['name'],
                     'form': form,
-                    'balance': profile.balance
+                    'balance': profile.balance,
+                    'step': step,
+                    'available': available
                 })
 
-            endprice_decimal = Decimal(str(transaction.endprice))
-            profile.balance += endprice_decimal
+            if count > available:
+                form.add_error('count', f'У вас есть только {available} {price_data["name"]} для продажи')
+                return render(request, 'htmls/sell.html', {
+                    'name': price_data['name'],
+                    'form': form,
+                    'balance': profile.balance,
+                    'step': step,
+                    'available': available
+                })
+
+            transaction.count = count
+            transaction.endprice = count * price
+            transaction.transaction_type = 'sell'
+
+            profile.balance += transaction.endprice
             profile.save()
             transaction.save()
             return redirect('history')
+        return render(request, 'htmls/sell.html', {
+            'name': price_data['name'],
+            'form': form,
+            'balance': profile.balance,
+            'step': step,
+            'available': available
+        })
     else:
-        form = transactionForm(initial={
+        initial_data = {
             'user': request.user,
-            'moneyid': price_data['id'],
+            'moneyid': ID,
             'money': price_data['name'],
-            'price': float(price_data['rate']),
-            'endprice': float(price_data['rate']),
+            'price': price,
+            'endprice': price,
+            'count': step,
             'transaction_type': 'sell'
+        }
+        form = transactionForm(initial=initial_data)
+        return render(request, 'htmls/sell.html', {
+            'name': price_data['name'],
+            'form': form,
+            'balance': profile.balance,
+            'step': step,
+            'available': available
         })
 
-    return render(request, 'htmls/sell.html', {
-        'name': price_data['name'],
-        'form': form,
-        'balance': profile.balance
-    })
 
 def Balance(request):
+    """Пополнение баланса"""
     profile, _ = Profile.objects.get_or_create(user=request.user)
     if request.method == 'POST':
-        if request.POST.get('income'):
-            income_decimal = Decimal(request.POST['income'])
-            profile.balance += income_decimal
-            profile.save()
-            return redirect('/')
+        income = request.POST.get('income')
+        if income:
+            try:
+                amount = Decimal(income)
+                profile.balance += amount
+                profile.save()
+            except:
+                pass
+        return redirect('home')
     return render(request, 'htmls/balance.html', {'balance': profile.balance})

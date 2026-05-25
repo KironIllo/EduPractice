@@ -1,0 +1,363 @@
+{% extends 'htmls/main.html' %}
+
+{% block content %}
+<div class="asset-container">
+    <div class="asset-header">
+        <div class="asset-title">
+            <h1>{{ name }}</h1>
+            <span class="asset-id">{{ asset_id }}</span>
+        </div>
+        <div class="asset-price">
+            <span class="current-price">{{ current_price|floatformat:2 }} ₽</span>
+            <span class="price-change" id="price-change"></span>
+        </div>
+    </div>
+
+    <div class="asset-stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="stat-info">
+                <span class="stat-label">Текущая цена</span>
+                <span class="stat-value">{{ current_price|floatformat:2 }} ₽</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-coins"></i></div>
+            <div class="stat-info">
+                <span class="stat-label">В портфеле</span>
+                <span class="stat-value">{{ quantity|floatformat:2 }}</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chart-simple"></i></div>
+            <div class="stat-info">
+                <span class="stat-label">Средняя цена</span>
+                <span class="stat-value">{{ avg_price|floatformat:2 }} ₽</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+            <div class="stat-info">
+                <span class="stat-label">Стоимость</span>
+                <span class="stat-value">{{ current_value|floatformat:2 }} ₽</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-trend-up"></i></div>
+            <div class="stat-info">
+                <span class="stat-label">Прибыль</span>
+                <span class="stat-value {% if profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {% if profit >= 0 %}+{% endif %}{{ profit|floatformat:2 }} ₽
+                </span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-percent"></i></div>
+            <div class="stat-info">
+                <span class="stat-label">Доходность</span>
+                <span class="stat-value {% if profit_percent >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {% if profit_percent >= 0 %}+{% endif %}{{ profit_percent|floatformat:1 }}%
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- График -->
+    <div class="chart-section">
+        <h3><i class="fas fa-chart-line"></i> График изменения цены</h3>
+        <canvas id="priceChart" width="800" height="400"></canvas>
+        <div class="chart-controls">
+            <button class="chart-btn active" data-days="7">7 дней</button>
+            <button class="chart-btn" data-days="14">14 дней</button>
+            <button class="chart-btn" data-days="30">30 дней</button>
+            <button class="chart-btn" data-days="90">90 дней</button>
+        </div>
+    </div>
+
+    <!-- Кнопки действий -->
+    <div class="asset-actions">
+        <a href="{% url 'buy' asset_id %}" class="btn btn-buy">
+            <i class="fas fa-shopping-cart"></i> Купить
+        </a>
+        <a href="{% url 'sell' asset_id %}" class="btn btn-sell">
+            <i class="fas fa-exchange-alt"></i> Продать
+        </a>
+    </div>
+
+    <!-- История операций -->
+    <div class="history-section">
+        <h3><i class="fas fa-history"></i> История операций</h3>
+        {% if transactions %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Тип</th>
+                    <th>Количество</th>
+                    <th>Цена</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>{{ t.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        {% if t.transaction_type == 'buy' %}
+                            <span class="text-success">Покупка</span>
+                        {% else %}
+                            <span class="text-danger">Продажа</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ t.count|floatformat:2 }}</td>
+                    <td>{{ t.price|floatformat:2 }} ₽</td>
+                    <td {% if t.transaction_type == 'buy' %}class="text-danger"{% else %}class="text-success"{% endif %}>
+                        {% if t.transaction_type == 'buy' %}-{% else %}+{% endif %}{{ t.endprice|floatformat:2 }} ₽
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-message">Нет операций по этому активу</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+{% load static %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.asset-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.asset-header {
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.asset-title h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.asset-id {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.asset-price {
+    text-align: right;
+}
+
+.current-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.asset-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.chart-section {
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.chart-section h3 {
+    margin-bottom: 1rem;
+}
+
+#priceChart {
+    max-height: 400px;
+    width: 100%;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+.chart-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    background: var(--bg-primary);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chart-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.asset-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-buy {
+    background: var(--accent);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-sell {
+    background: var(--text-secondary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.history-section {
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.empty-message {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 2rem;
+}
+
+@media (max-width: 768px) {
+    .asset-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    .asset-price {
+        text-align: center;
+    }
+    .asset-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+let chart;
+// eslint-disable-next-line
+let chartData = {{ chart_data|safe }};
+
+// Инициализация графика с данными
+function initChart() {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.dates,
+            datasets: [{
+                label: 'Цена (₽)',
+                data: chartData.prices,
+                borderColor: '#2A5CBA',
+                backgroundColor: 'rgba(42, 92, 186, 0.1)',
+                borderWidth: 2,
+                pointRadius: 2,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y.toFixed(2)} ₽`;
+                        }
+                    }
+                },
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(2) + ' ₽';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Обновление цены в реальном времени
+async function updatePrice() {
+    try {
+        const response = await fetch(`/api/price/{{ asset_id }}/`);
+        const data = await response.json();
+        document.querySelector('.current-price').textContent = data.price.toFixed(2) + ' ₽';
+        
+        const changeSpan = document.getElementById('price-change');
+        if (data.change >= 0) {
+            changeSpan.innerHTML = `<span class="text-success">+${data.change}%</span>`;
+        } else {
+            changeSpan.innerHTML = `<span class="text-danger">${data.change}%</span>`;
+        }
+    } catch(e) {
+        console.log('Ошибка обновления цены');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initChart();
+    // setInterval(updatePrice, 30000);
+});
+
+document.querySelectorAll('.chart-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const days = this.dataset.days;
+        fetch(`/api/chart-data/{{ asset_id }}/?days=${days}`)
+            .then(res => res.json())
+            .then(data => {
+                chart.data.labels = data.dates;
+                chart.data.datasets[0].data = data.prices;
+                chart.update();
+            });
+    });
+});
+</script>
+{% endblock %}
