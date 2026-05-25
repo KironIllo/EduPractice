@@ -12,11 +12,33 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 @login_required(login_url="login/")
 def Profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    return render(request, 'htmls/profile.html', {'time': dt.datetime.now, 'balance': profile.balance})
+    transatcions = Transaction.objects.filter(user=request.user).order_by('money')
+    monid = transatcions[0].moneyid
+    mon = transatcions[0].money
+    portfel = []
+    money = 0.0
+    price_data = float(get_currency_price(monid)['rate'])
+    for tran in transatcions:
+        if tran.moneyid == monid:
+            if tran.transaction_type == 'buy':
+                money += tran.count
+            else:
+                money -= tran.count
+        else:
+            if (money != 0):
+                portfel += [[mon, money, money * price_data]]
+            monid = tran.moneyid
+            mon = tran.money
+            price_data = float(get_currency_price(monid)['rate'])
+            money = 0
+            money += tran.count
+    if (money != 0):
+        portfel += [[mon, money, money * price_data]]
+    return render(request, 'htmls/profile.html', {'time': dt.datetime.now, 'balance': profile.balance, 'portfel': portfel})
 
 @login_required(login_url="login/")
 def History(request):
-    transactions = Transaction.objects.filter(user=request.user)
+    transactions = Transaction.objects.filter(user=request.user).order_by('-created_at')
     profile, _ = Profile.objects.get_or_create(user=request.user)
     return render(request, 'htmls/history.html', {'hist': transactions, 'balance': profile.balance})
 

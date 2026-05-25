@@ -5,7 +5,16 @@
 <p>Сейчас открыт профиль</p>
 
 {% block confirm %}
-
+{% if portfel %}
+<div>
+{% for prof in portfel %}
+<p>{{ prof.0 }} в количестве {{ prof.1 }}</p>
+<p>Ценность на данный момент {{ prof.2 }}</p>
+{% endfor %}
+</div>
+{% else %}
+<p>Портфель пуст</p>
+{% endif %}
 <a href="edit">Редактирование</a>
 <a href="delete">Удалить</a>
 {{ time.date }}
