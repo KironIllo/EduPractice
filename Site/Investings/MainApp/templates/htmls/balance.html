@@ -1,27 +1,26 @@
 {% extends 'htmls/main.html' %}
 
 {% block content %}
+<div class="balance-container">
+    <h2>Ваш баланс</h2>
+    <div class="balance-amount">
+        <strong>{{ balance|floatformat:2 }} руб.</strong>
+    </div>
 
-<ul>
-    <input type="radio" name="income" id="100"><label for="100">100</label>
-    <input type="radio" name="income" id="500"><label for="500">500</label>
-    <input type="radio" name="income" id="1000"><label for="1000">1000</label>
-    <input type="radio" name="income" id="5000"><label for="5000">5000</label>
-    <input type="radio" name="income" id="10000"><label for="10000">10000</label>
-</ul>
-<form method="post">  
-    {% csrf_token %}  
-    {% if form.errors %}  
-        <div class="alert alert-danger">  
-            {{ form.errors }}  
-        </div>  
-    {% endif %}
-    {% for field in form %}       
-            <p class="form-label">{{ field.label }}</p>
-            <p>{{ field }}</p>
-    {% endfor %}  
-    <button type="submit" class="btn btn-outline-success">Сохранить</button>  
-    <a href="/">Отмена</a> 
-</form>
-
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Пополнить на:</label>
+            <div class="amount-options">
+                <label><input type="radio" name="income" value="100" required> 100 руб.</label>
+                <label><input type="radio" name="income" value="500"> 500 руб.</label>
+                <label><input type="radio" name="income" value="1000"> 1000 руб.</label>
+                <label><input type="radio" name="income" value="5000"> 5000 руб.</label>
+                <label><input type="radio" name="income" value="10000"> 10000 руб.</label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-outline-success">Пополнить</button>
+        <a href="/" class="btn btn-cancel">Отмена</a>
+    </form>
+</div>
 {% endblock %}

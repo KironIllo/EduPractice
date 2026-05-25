@@ -1,8 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core import validators
-from django.contrib.auth.forms import UserCreationForm
-
+from django.contrib.auth.models import User
 
 class Transaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
@@ -12,5 +11,9 @@ class Transaction(models.Model):
     price = models.FloatField(max_length=100)
     endprice = models.FloatField(max_length=100)
 
-class userB(UserCreationForm):
-    balance = models.FloatField(max_length=100)
+class userB(User):
+    balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00)
+    proxy = True
