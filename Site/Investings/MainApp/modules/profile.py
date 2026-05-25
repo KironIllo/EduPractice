@@ -1,6 +1,6 @@
-from django.shortcuts import render, get_list_or_404, redirect
+from django.shortcuts import render, get_list_or_404, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from MainApp.models import Transaction
+from MainApp.models import Transaction, userB
 from MainApp.forms import transactionForm
 import datetime as dt
 import requests
@@ -93,4 +93,6 @@ def Sell(request, ID):
     return render(request, 'htmls/buy.html',{'name':pric[1], 'form':form})
 
 def Balance(request):
+    ua = get_object_or_404(userB.objects.all(), pk=request.user)
+    print(ua.balance)
     return render(request,'htmls/balance.html')

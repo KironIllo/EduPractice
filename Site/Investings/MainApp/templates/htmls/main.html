@@ -17,7 +17,7 @@
     <div>
         <a href="{% url 'history' %}">История</a>
         {% if user.is_authenticated %}
-        <a href="{% url 'balance' %}">Баланс: {}</a>
+        <a href="{% url 'balance' %}">Баланс: {{balance}}</a>
         <a href="{% url 'profile' %}">{{ user }}</a>
         <a href="{% url 'logout' %}">Выход</a>
         {% else %}

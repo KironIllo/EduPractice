@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from MainApp.models import userB
 import requests
 import pandas as pd
 import datetime as dt
@@ -25,8 +26,10 @@ def Main(request):
         pric = []
         for i in prices["ID"]:
             pric.append([prices['ID'][i], prices['Name'][i], prices['VunitRate'][i]])
-
-        return render(request, 'htmls/main.html', {'prices': pric})
+        bal = 0
+        if request.user.is_authenticated:
+            bal = get_object_or_404(userB.objects.all(), pk=request.user).balance
+        return render(request, 'htmls/main.html', {'prices': pric, 'balance': bal})
 
     except requests.exceptions.RequestException as e:
         logger.error(f"Ошибка запроса: {e}")

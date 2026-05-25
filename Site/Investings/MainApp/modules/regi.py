@@ -3,6 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.core.cache import cache
 from .regEmailCode import EmailService
+from MainApp.forms import userForm
 import re
 
 email_service = EmailService(
@@ -28,7 +29,6 @@ def signup(request):
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
         form = UserCreationForm(request.POST)
-
         # Обработка повторной отправки кода
         if 'resend_code' in request.POST:
             # Берём email из сессии, если есть
@@ -92,13 +92,14 @@ def signup(request):
 
             code = request.POST.get('verification_code', '').strip()
             stored_code = cache.get(f'verification_code_{email}')
-
             if stored_code and stored_code == code:
-                form = UserCreationForm(form_data)
+                form = userForm(form_data)
                 if form.is_valid():
                     user = form.save(commit=False)
+                    user.username = form_data['username']
                     user.email = email
                     user.is_active = True
+                    user.balance = 0
                     user.save()
                     login(request, user)
                     cache.delete(f'verification_code_{email}')

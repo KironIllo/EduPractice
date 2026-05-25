@@ -17,7 +17,7 @@ class EmailService:
     def send_verification_code(self, to_email):
         """Отправляет код подтверждения на email"""
         code = self.generate_verification_code()
-
+        print(code)
         subject = 'Код подтверждения регистрации'
         text_body = f'Ваш код подтверждения: {code}\n\nВведите его на странице регистрации.'
         html_body = f'''

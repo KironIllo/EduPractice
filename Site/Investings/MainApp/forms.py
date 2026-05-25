@@ -1,5 +1,7 @@
 from django import forms
-from .models import Transaction
+from .models import Transaction, userB
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
 class transactionForm(forms.ModelForm):
     class Meta:
@@ -13,3 +15,7 @@ class transactionForm(forms.ModelForm):
             'price': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'true'}),
             'endprice': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'true'})
         }
+class userForm(UserCreationForm):
+    class Meta:
+        model = userB
+        fields = User.get_deferred_fields(User)
