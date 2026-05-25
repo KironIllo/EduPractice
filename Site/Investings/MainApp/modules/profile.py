@@ -47,8 +47,20 @@ def Buy(request, ID):
                 transaction.save()
                 return redirect('history')
             else:
-                form.add_error(None, 'Недостаточно средств')
-        # Если форма невалидна или ошибка, идём к рендеру формы
+                # Добавляем ошибку к форме
+                form.add_error(None, '⚠️ Недостаточно средств для покупки!')
+                # Возвращаем форму с ошибкой в тот же шаблон
+                return render(request, 'htmls/buy.html', {
+                    'name': price_data['name'],
+                    'form': form,
+                    'balance': profile.balance
+                })
+        # Если форма невалидна по другим причинам, тоже возвращаем её
+        return render(request, 'htmls/buy.html', {
+            'name': price_data['name'],
+            'form': form,
+            'balance': profile.balance
+        })
     else:
         form = transactionForm(initial={
             'user': request.user,
@@ -65,9 +77,9 @@ def Buy(request, ID):
         'balance': profile.balance
     })
 
+
 def Sell(request, ID):
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    # Получаем данные о валюте ДО проверки метода
     price_data = get_currency_price(ID)
     if not price_data:
         return render(request, 'htmls/error.html', {
@@ -84,13 +96,35 @@ def Sell(request, ID):
             transaction.endprice = abs(round(transaction.count * transaction.price, 2))
             transaction.transaction_type = 'sell'
 
-            endprice_decimal = Decimal(str(transaction.endprice))
+            # Проверка: есть ли у пользователя такая валюта для продажи?
+            from django.db.models import Sum
+            bought = Transaction.objects.filter(
+                user=request.user, 
+                moneyid=ID, 
+                transaction_type='buy'
+            ).aggregate(total=Sum('count'))['total'] or 0
+            
+            sold = Transaction.objects.filter(
+                user=request.user, 
+                moneyid=ID, 
+                transaction_type='sell'
+            ).aggregate(total=Sum('count'))['total'] or 0
+            
+            available = bought - sold
+            
+            if transaction.count > available:
+                form.add_error(None, f'⚠️ У вас нет столько валюты! Доступно: {available}')
+                return render(request, 'htmls/sell.html', {
+                    'name': price_data['name'],
+                    'form': form,
+                    'balance': profile.balance
+                })
 
+            endprice_decimal = Decimal(str(transaction.endprice))
             profile.balance += endprice_decimal
             profile.save()
             transaction.save()
             return redirect('history')
-        # Если форма невалидна, идём к рендеру
     else:
         form = transactionForm(initial={
             'user': request.user,

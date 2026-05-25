@@ -2,21 +2,41 @@
 
 {% block content %}
 
+{% if form.non_field_errors %}
+<div class="alert alert-danger" role="alert">
+    {% for error in form.non_field_errors %}
+        <strong>{{ error }}</strong>
+    {% endfor %}
+</div>
+{% endif %}
+
 <form method="post">  
     {% csrf_token %}  
-    {% if form.errors %}  
+    
+    {% if form.errors and not form.non_field_errors %}  
         <div class="alert alert-danger">  
             {{ form.errors }}  
         </div>  
     {% endif %}
+
     {% for field in form %}
-        {% if field.name != 'moneyid' and field.name != 'user' %}
-            <p class="form-label">{{ field.label }}</p>
+        {% if field.name != 'moneyid' and field.name != 'user' and field.name != 'transaction_type' %}
+            <div class="form-group mb-3">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="alert alert-danger mt-1">
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            {{ field }}
         {% endif %}
-            <p>{{ field }}</p>
     {% endfor %}  
+
     <button type="submit" class="btn btn-outline-success">Продать</button>  
-    <a href="/">Отмена</a> 
+    <a href="/" class="btn btn-outline-secondary">Отмена</a> 
 </form>
 
 <script>
