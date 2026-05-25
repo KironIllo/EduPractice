@@ -1,19 +1,44 @@
 {% extends 'htmls/main.html' %}
 
 {% block content %}
-{% load mathfilters %}
-<p>Сейчас открыта история</p>
-{% for i in hist %}
-{{i.money}}
-<div style="display: flex; flex-direction: row; height: fit-content; align-items: center;">
-{% if i.endprice > 0 %}
-<p style="color: green; font-weight: 800; font-size: 1.2vw; height: fit-content; margin: 0;">+</p>
-{{ i.endprice }}
-{% else %}
-<p style="color: red; font-weight: 800; font-size: 1.2vw; height: fit-content; margin: 0">-</p>
-{{ i.endprice|mul:"-1" }}
-{% endif %}
-</div>
-{{empty}}
-{% endfor %}
+<h2>История операций</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Тип</th>
+            <th>Валюта</th>
+            <th>Количество</th>
+            <th>Цена за единицу</th>
+            <th>Сумма</th>
+            <th>Дата</th>   <!-- новая колонка -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in hist %}
+        <tr>
+            <td>
+                {% if item.transaction_type == 'buy' %}
+                    <span class="text-danger">Покупка</span>
+                {% else %}
+                    <span class="text-success">Продажа</span>
+                {% endif %}
+            </td>
+            <td>{{ item.money }}</td>
+            <td>{{ item.count }}</td>
+            <td>{{ item.price }} руб.</td>
+            <td>
+                {% if item.transaction_type == 'buy' %}
+                    <span class="text-danger">-{{ item.endprice }} руб.</span>
+                {% else %}
+                    <span class="text-success">+{{ item.endprice }} руб.</span>
+                {% endif %}
+            </td>
+            <td>{{ item.created_at|date:"d.m.Y H:i" }}</td>   <!-- ← формат даты -->
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">Операций пока нет</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p><strong>Текущий баланс:</strong> {{ balance }} руб.</p>
 {% endblock %}

@@ -1,21 +1,16 @@
 from django import forms
-from .models import Transaction, userB
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from .models import Transaction
 
 class transactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
-        fields = ['user', 'moneyid', 'money', 'count', 'price', 'endprice']
+        fields = ['user', 'moneyid', 'money', 'count', 'price', 'endprice', 'transaction_type']
         widgets = {
             'user': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'true', 'hidden': 'true'}),
             'moneyid': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'true', 'hidden': 'true'}),
             'money': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'true'}),
             'count': forms.NumberInput(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'true'}),
-            'endprice': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'true'})
+            'endprice': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'true'}),
+            'transaction_type': forms.HiddenInput(),  # скрытое поле
         }
-class userForm(UserCreationForm):
-    class Meta:
-        model = userB
-        fields = User.get_deferred_fields(User)

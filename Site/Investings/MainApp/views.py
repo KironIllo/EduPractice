@@ -1,14 +1,13 @@
-from django.shortcuts import render, get_object_or_404
-from MainApp.models import userB
+from django.shortcuts import render
+from MainApp.models import Profile   # вместо userB
 import requests
 import pandas as pd
 import datetime as dt
 import logging
-
 import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from io import BytesIO
 
-# Настраиваем логирование
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
 
 def Main(request):
@@ -17,24 +16,20 @@ def Main(request):
 
     try:
         response = requests.get(url, verify=False, timeout=10)
-        response.raise_for_status()  # Проверяем статус ответа
-
-        # Передаём байтовые данные через BytesIO
-        from io import BytesIO
+        response.raise_for_status()
         prices = pd.read_xml(BytesIO(response.content), encoding='Windows-1251').to_dict()
 
         pric = []
         for i in prices["ID"]:
             pric.append([prices['ID'][i], prices['Name'][i], prices['VunitRate'][i]])
+        
         bal = 0
         if request.user.is_authenticated:
-            bal = userB.objects.get(pk=request.user).balance
+            profile, _ = Profile.objects.get_or_create(user=request.user)
+            bal = profile.balance
+
         return render(request, 'htmls/main.html', {'prices': pric, 'balance': bal})
 
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Ошибка запроса: {e}")
-        return render(request, 'htmls/main.html', {'prices': []})
     except Exception as e:
-        logger.error(f"Неожиданная ошибка: {e}")
+        logger.error(f"Ошибка: {e}")
         return render(request, 'htmls/main.html', {'prices': []})

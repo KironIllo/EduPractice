@@ -32,7 +32,8 @@ class EmailService:
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
-        msg['From'] = f'Ваше приложение <{self.username}>'
+        #msg['From'] = f'Инвестиционный портфель <{self.username}>'
+        msg['From'] = 'Инвестиционный портфель'
         msg['To'] = to_email
 
         msg.attach(MIMEText(text_body, 'plain'))
