@@ -4,7 +4,10 @@
 <p>Сейчас открыт профиль</p>
 {{ prices }}
 
+{% block confirm %}
 <a href="edit">Редактирование</a>
+<a href="delete">Удалить</a>
 {{ time.date }}
 <p>{{ time.hour }} : {{ time.minute }}</p>
+{% endblock %}
 {% endblock %}

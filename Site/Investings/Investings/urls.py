@@ -31,4 +31,5 @@ urlpatterns = [
     path('profile', profile.Profile, name='profile'),
     path('edit', editi.Edit, name='edit'),
     path('history', profile.History, name='history'),
+    path('delete', editi.Delete, name='delete'),
 ] + static(STATIC_URL)
