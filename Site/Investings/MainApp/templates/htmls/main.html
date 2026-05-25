@@ -31,8 +31,24 @@
 
 {% block content %}
 <ul>
-    <li>RUB</li>
-    <li>USD</li>
+    {% for value in prices %}
+    
+    <li>
+        <div>
+        <p>{{ value.0 }}</p>
+        <p>{{ value.1 }}</p>
+        </div>
+        <div>
+            <button>
+                Купить
+            </button>
+            <button>
+                Продать
+            </button>
+        </div>
+    </li>
+
+    {% endfor %}
 </ul>
 {% endblock %}
 {% block login %}
