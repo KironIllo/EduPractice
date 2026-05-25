@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from MainApp import views
-from MainApp.modules import regi, logi, editi, profile, prices, notifi, asset
+from MainApp.modules import regi, logi, editi, profile, asset
 
 from django.conf.urls.static import static
 from .settings import STATIC_URL

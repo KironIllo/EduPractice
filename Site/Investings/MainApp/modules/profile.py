@@ -2,7 +2,7 @@
 from decimal import Decimal
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q
+from django.db.models import Sum
 from MainApp.models import Transaction, Profile
 from MainApp.forms import transactionForm
 from MainApp.modules.prices import get_currency_price

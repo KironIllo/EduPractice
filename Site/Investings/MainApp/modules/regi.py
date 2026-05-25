@@ -3,8 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.core.cache import cache
 from .regEmailCode import EmailService
-from MainApp.models import Profile   
-import re
+from MainApp.models import Profile
 
 email_service = EmailService(
     smtp_server='smtp.gmail.com',
