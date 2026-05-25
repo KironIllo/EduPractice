@@ -24,6 +24,9 @@ from .settings import STATIC_URL
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.Main, name='home'),
+    path('signup/', views.signup, name='signup'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
     path('profile', views.Profile, name='profile'),
     path('history', views.History, name='history'),
 ] + static(STATIC_URL)
