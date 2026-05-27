@@ -5,6 +5,7 @@ import pandas as pd
 import datetime as dt
 import logging
 import urllib3
+from MainApp.modules.metals_api import get_all_metals
 from io import BytesIO
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -39,3 +40,12 @@ def Main(request):
     except Exception as e:
         logger.error(f"Ошибка: {e}")
         return render(request, 'htmls/main.html', {'prices': []})
+
+def Metals(request):
+    """Страница драгоценных металлов"""
+    metals = get_all_metals()
+    bal = 0
+    if request.user.is_authenticated:
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        bal = profile.balance
+    return render(request, 'htmls/metals.html', {'metals': metals, 'balance': bal})

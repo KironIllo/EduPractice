@@ -12,7 +12,7 @@
 
 {% if available is not None %}
 <div class="alert alert-info">
-    <strong>Доступно для продажи: {{ available|floatformat:2 }} {{ name }}</strong>
+    <strong>Доступно для продажи: {{ available|floatformat:2 }} {{ unit }}</strong>
 </div>
 {% endif %}
 
@@ -25,13 +25,12 @@
     </div>
     {% endif %}
 
-    {# Скрытые поля #}
     {{ form.user }}
     {{ form.moneyid }}
     {{ form.transaction_type }}
 
     <div class="form-group mb-3">
-        <label class="form-label">Валюта</label>
+        <label class="form-label">Актив</label>
         <input type="text" class="form-control" value="{{ name }}" readonly>
     </div>
 
@@ -41,7 +40,7 @@
     </div>
 
     <div class="form-group mb-3">
-        <label class="form-label">Количество</label>
+        <label class="form-label">Количество ({{ unit }})</label>
         <input type="number" name="count" id="id_count" step="{{ step|stringformat:'f' }}"
             min="{{ step|stringformat:'f' }}"
             value="{% if form.count.value %}{{ form.count.value|stringformat:'f' }}{% else %}{{ step|stringformat:'f' }}{% endif %}"
@@ -49,7 +48,7 @@
         {% if form.count.errors %}
         <div class="alert alert-danger mt-1">{{ form.count.errors }}</div>
         {% endif %}
-        <small class="form-text text-muted">Максимум: {{ available|default:0 }} | Шаг: {{ step|default:0.01 }}</small>
+        <small class="form-text text-muted">Максимум: {{ available|default:0 }} {{ unit }} | Шаг: {{ step }} {{ unit }}</small>
     </div>
 
     <div class="form-group mb-3">
@@ -58,7 +57,7 @@
     </div>
 
     <button type="submit" class="btn btn-outline-success">Продать</button>
-    <a href="/" class="btn btn-outline-secondary">Отмена</a>
+    <a href="{% if unit == 'г' %}{% url 'metals' %}{% else %}/{% endif %}" class="btn btn-outline-secondary">Отмена</a>
 </form>
 
 <script>
@@ -66,7 +65,7 @@
     const priceInput = document.querySelector('input[name="price"]');
     const endpriceInput = document.getElementById('id_endprice');
     const step = parseFloat(countInput.step);
-    const maxAvailable = parseFloat(countInput.max) || Infinity;
+    const maxAvailable = parseFloat({{ available|default:"Infinity" }});
 
     function updateEndprice() {
         let count = parseFloat(countInput.value) || 0;
@@ -89,7 +88,7 @@
     function validateMax() {
         let value = parseFloat(countInput.value);
         if (value > maxAvailable) {
-            alert(`Нельзя продать больше ${maxAvailable}`);
+            alert(`Нельзя продать больше ${maxAvailable} {{ unit }}`);
             countInput.value = maxAvailable;
             updateEndprice();
         }

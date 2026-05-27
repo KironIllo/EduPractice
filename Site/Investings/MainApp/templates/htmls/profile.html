@@ -63,7 +63,7 @@
                 </thead>
                 <tbody>
                     {% for prof in portfel %}
-                    <tr>
+                     <tr onclick="window.location.href='{% url 'asset' prof.asset_id %}'" style="cursor: pointer;">
                         <td><strong>{{ prof.name }}</strong></td>
                         <td>{{ prof.quantity|floatformat:2 }}</td>
                         <td>{{ prof.avg_price|floatformat:2 }} ₽</td>

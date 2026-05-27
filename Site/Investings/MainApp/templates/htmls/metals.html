@@ -1,0 +1,87 @@
+{% extends 'htmls/main.html' %}
+
+{% block content %}
+<div class="control-panel">
+    <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Поиск металла...">
+    </div>
+    <div class="sort-buttons">
+        <button id="sortPriceAsc" class="sort-btn"><i class="fas fa-arrow-up"></i> Цена ↑</button>
+        <button id="sortPriceDesc" class="sort-btn"><i class="fas fa-arrow-down"></i> Цена ↓</button>
+        <button id="resetSort" class="sort-btn reset"><i class="fas fa-undo-alt"></i> Сброс</button>
+    </div>
+</div>
+
+<ul id="metalsList">
+    {% for metal in metals %}
+    <li data-id="{{ metal.0 }}" data-name="{{ metal.1 }}" data-price="{{ metal.2|floatformat:2 }}">
+        <div class="asset-link">
+            <a href="{% url 'asset' metal.0 %}">
+                <div class="currency-info">
+                    <span class="currency-flag">
+                        {% if metal.1 == 'Золото' %}🥇
+                        {% elif metal.1 == 'Серебро' %}🥈
+                        {% elif metal.1 == 'Платина' %}⚙️
+                        {% elif metal.1 == 'Палладий' %}🔘
+                        {% else %}🔹{% endif %}
+                    </span>
+                    <div>
+                        <p><strong>{{ metal.1 }}</strong></p>
+                        <p class="price">{{ metal.2|floatformat:2 }} ₽/г</p>
+                    </div>
+                </div>
+            </a>
+            <div>
+                {% if user.is_authenticated %}
+                <button class="btn-buy-small"
+                    onclick="event.stopPropagation(); window.location.href='{% url 'buy' metal.0 %}'">
+                    Купить
+                </button>
+                <button class="btn-sell-small"
+                    onclick="event.stopPropagation(); window.location.href='{% url 'sell' metal.0 %}'">
+                    Продать
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+
+<script>
+    let originalItems = [];
+    document.querySelectorAll('#metalsList li').forEach(li => originalItems.push(li));
+
+    function filterMetals() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        document.querySelectorAll('#metalsList li').forEach(item => {
+            const name = item.getAttribute('data-name').toLowerCase();
+            item.style.display = name.includes(query) ? '' : 'none';
+        });
+    }
+
+    function sortByPrice(order) {
+        const container = document.getElementById('metalsList');
+        const items = Array.from(container.children);
+        items.sort((a, b) => {
+            const priceA = parseFloat(a.getAttribute('data-price'));
+            const priceB = parseFloat(b.getAttribute('data-price'));
+            return order === 'asc' ? priceA - priceB : priceB - priceA;
+        });
+        items.forEach(item => container.appendChild(item));
+    }
+
+    function resetSortAndFilter() {
+        const container = document.getElementById('metalsList');
+        originalItems.forEach(item => container.appendChild(item));
+        document.getElementById('searchInput').value = '';
+        filterMetals();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', filterMetals);
+    document.getElementById('sortPriceAsc').addEventListener('click', () => sortByPrice('asc'));
+    document.getElementById('sortPriceDesc').addEventListener('click', () => sortByPrice('desc'));
+    document.getElementById('resetSort').addEventListener('click', resetSortAndFilter);
+</script>
+{% endblock %}

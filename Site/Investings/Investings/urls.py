@@ -40,7 +40,7 @@ urlpatterns = [
     path('buy/<str:ID>', profile.Buy, name='buy'),
     path('sell/<str:ID>', profile.Sell, name='sell'),
     path('balance', profile.Balance, name='balance'),
+    path('metals', views.Metals, name='metals'),
     path('asset/<str:ID>', asset.AssetDetail, name='asset'),  # ← добавить
-    path('api/price/<str:ID>/', asset_api.get_current_price, name='api_price'),
-    path('api/chart-data/<str:ID>/', asset_api.get_chart_data, name='api_chart'),
+    path('api/price/<str:ID>/', asset_api.get_asset_price, name='api_price'),
 ] + static(STATIC_URL)
