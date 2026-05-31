@@ -30,7 +30,7 @@ def get_currency_price(currency_id):
 
 
         # Выполняем запрос к API ЦБ РФ
-        response = requests.get(url, verify=False, timeout=10)
+        response = requests.get(url, verify=False, timeout=30)
         response.raise_for_status()  # Проверяем статус ответа
 
         logger.info(f"Успешный запрос к API ЦБ: {url}")

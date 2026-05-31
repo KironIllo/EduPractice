@@ -1,0 +1,29 @@
+@startuml
+actor Пользователь as User
+participant "Изменение" as View
+participant "Профиль" as Profile
+participant "Форма изменения пароля" as Form
+database "БД" as DB
+
+User -> View: Запрос
+activate View
+View -> Profile: get_or_create(user=request.user)
+Profile --> View: profile
+View -> Form: создать экземпляр
+Form --> View: пустая форма
+View --> User: отобразить edit.html
+deactivate View
+
+User -> View: POST (new_password1, new_password2)
+activate View
+View -> Form: Валидна?
+Form --> View: True/False
+alt форма валидна
+    View -> Form: save()
+    Form -> DB: обновить пароль
+    View --> User: Открыть страницу профиля
+else форма не валидна
+    View --> User: показать ошибки формы
+end
+deactivate View
+@enduml

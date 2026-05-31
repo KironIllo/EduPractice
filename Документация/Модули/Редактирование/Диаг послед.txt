@@ -1,0 +1,28 @@
+@startuml
+actor Пользователь as User
+participant "Удаление" as View
+participant "Профиль" as Profile
+participant "Django Auth" as Auth
+database "Сессия" as Session
+database "БД" as DB
+
+User -> View: Запрос
+activate View
+View -> Profile: get_or_create(user=request.user)
+Profile --> View: profile
+View --> User: отобразить delete.html
+deactivate View
+
+User -> View: POST (password)
+activate View
+View -> Auth: authenticate(username, password)
+Auth --> View: user (или None)
+alt user not None
+    View -> Session: logout(request)
+    View -> DB: user.delete()
+    View --> User: Показать главный экран
+else user is None
+    View --> User: показать ошибку "Неверный пароль"
+end
+deactivate View
+@enduml

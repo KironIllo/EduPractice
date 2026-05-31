@@ -1,0 +1,26 @@
+@startuml
+|EmailService|
+start
+:Получить to_email;
+:generate_verification_code() -> code;
+:Сформировать MIME-письмо (текст + HTML);
+
+|SMTP-сервер|
+:Подключиться (соединение);
+:Установить TLS (starttls);
+:Выполнить логин;
+
+|EmailService|
+:Отправить письмо (sendmail);
+
+|SMTP-сервер|
+:Закрыть соединение (quit);
+
+|EmailService|
+if (Исключение?) then (нет)
+  :Вернуть {success: True, code: code};
+else (да)
+  :Вернуть {success: False, error: сообщение};
+endif
+stop
+@enduml

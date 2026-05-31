@@ -1,0 +1,28 @@
+@startuml
+participant "signup (из модуля regi.py)" as Caller
+participant "EmailService" as Email
+participant "smtplib" as SMTP
+participant "Gmail SMTP" as Gmail
+
+Caller -> Email: Отправка кода(email)
+activate Email
+Email -> Email: генерация кода()
+Email -> Email: построить MIME (text/html)
+Email -> SMTP: инициализация(server, port)
+activate SMTP
+SMTP -> Gmail: установка соединения
+Gmail --> SMTP: соединение
+SMTP -> Gmail: starttls()
+SMTP -> Gmail: login(username, password)
+SMTP -> Gmail: отправка сообщения(from, to, msg)
+Gmail --> SMTP: OK
+SMTP -> Gmail: quit()
+SMTP --> Email: успех
+deactivate SMTP
+alt успех
+    Email --> Caller: {success: True, code: code}
+else ошибка
+    Email --> Caller: {success: False, error: ...}
+end
+deactivate Email
+@enduml

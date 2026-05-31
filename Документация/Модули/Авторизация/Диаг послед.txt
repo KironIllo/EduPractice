@@ -1,0 +1,18 @@
+@startuml
+actor Пользователь as User
+participant "login_view (обработка аутентификации)" as View
+participant "Аутентификация" as Auth
+database "Сессия" as Session
+
+User -> View: Вход (username, password)
+activate View
+View -> Auth: аутентификация(username, password)
+Auth --> View: Пользователь (или None)
+alt user not None
+    View -> Session: Вход(request, user)
+    View --> User: Главная страница
+else user is None
+    View --> User: показать ошибку "Неверные учётные данные"
+end
+deactivate View
+@enduml

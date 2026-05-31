@@ -1,0 +1,34 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+' Объекты (Узлы)
+node "Пользователь" as Client
+node "Веб-приложение Django" as DjangoApp
+node "Система аутентификации" as DjangoAuth
+node "БД" as Database
+node "Модель Profile" as ProfileModel
+
+' --- Сценарий: Изменение пароля (POST запрос) ---
+
+' GET-запрос для отображения формы и баланса
+Client -- DjangoApp : 1: GET /edit/ >\n2: Запрос на получение Profile <
+DjangoApp -- ProfileModel : 2.1: Profile.objects.get_or_create(user) >\n2.2: Возвращен объект Profile <
+DjangoApp -- Client : 3: HTTP OK (htmls/edit.html с формой и балансом) <
+
+' POST-запрос для изменения пароля
+Client -- DjangoApp : 4: POST /edit/ (данные формы: старый/новый пароль) >
+
+' Обработка формы
+DjangoApp -- DjangoAuth : 5: PasswordChangeForm(user, data) >
+DjangoApp -- DjangoAuth : 6: form.is_valid() (проверка старого пароля) >
+DjangoAuth -- Database : 7: Запрос на проверку старого пароля >\n8: Результат проверки <
+
+' Сохранение нового пароля
+DjangoApp -- DjangoAuth : 9: form.save() (сохранение нового пароля) >
+DjangoAuth -- Database : 10: Обновление хеша пароля пользователя >\n11: Подтверждение обновления <
+
+' Перенаправление после успешного изменения
+DjangoApp -- Client : 12: HTTP Перенаправление ('profile') <
+
+@enduml

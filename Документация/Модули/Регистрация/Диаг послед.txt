@@ -1,0 +1,28 @@
+@startuml
+actor Пользователь as User
+participant "Обработка регистрации" as View
+participant "Почтовый сервис" as Email
+database "БД" as DB
+
+== Отправка кода ==
+User -> View: Ввод данных
+activate View
+View -> View: валидация формы
+View -> Email: запрос кода
+activate Email
+Email --> View: Отправка кода
+deactivate Email
+View --> User: отобразить форму ввода кода
+deactivate View
+
+== Подтверждение кода ==
+User -> View: Ввод кода
+activate View
+alt код верен
+    View -> DB: Создать пользователя
+    View --> User: Возврат на главный экран
+else код неверен
+    View --> User: показать ошибку, остаться на форме
+end
+deactivate View
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+' Объекты (Узлы)
+node "Пользователь" as Client
+node "Сервис Email (EmailService)" as EmailServiceNode
+node "Клиент SMTPLib (smtplib.SMTP)" as SMTPLibClient
+node "SMTP-сервер (Gmail)" as SMTPServer
+
+' Связи между объектами и пронумерованные сообщения
+' (Номера показывают последовательность шагов, > - запрос, < - ответ)
+
+' 1. Клиент инициирует отправку кода через EmailService
+Client -- EmailServiceNode : 1: Отправка кода >\n6: Возвращен результат (True или False) <
+
+' 2. EmailService использует объект SMTPLibClient для отправки
+'    (включает инициализацию объекта smtplib.SMTP и вызовы его методов)
+EmailServiceNode -- SMTPLibClient : 2: Инициализация/Использование объекта smtplib.SMTP >\n5: Статус внутренней операции <
+
+' 3. SMTPLibClient общается с внешним SMTP-сервером
+SMTPLibClient -- SMTPServer : 3: Запросы SMTP  >\n4: Ответы SMTP  <
+
+@enduml

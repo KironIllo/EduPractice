@@ -29,7 +29,7 @@ def get_metal_price(metal_code):
         date_req = f'{day}/{month}/{year}'
         url = f'http://www.cbr.ru/scripts/xml_metall.asp?date_req1={date_req}&date_req2={date_req}'
 
-        response = requests.get(url, verify=False, timeout=10)
+        response = requests.get(url, verify=False, timeout=30)
         response.raise_for_status()
         
         # Парсим XML

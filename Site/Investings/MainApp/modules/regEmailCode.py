@@ -32,7 +32,6 @@ class EmailService:
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
-        #msg['From'] = f'Инвестиционный портфель <{self.username}>'
         msg['From'] = 'Инвестиционный портфель'
         msg['To'] = to_email
 
