@@ -1,0 +1,20 @@
+@startuml
+actor "Пользователь" as User
+participant "AssetDetail" as View
+participant "get_asset_price" as Util
+database "БД" as DB
+
+User -> View: GET /asset/ID
+activate View
+View -> Util: get_asset_price(ID)
+Util --> View: asset
+alt asset not found
+    View --> User: error.html
+else
+    View -> DB: запрос транзакций и профиля
+    DB --> View: данные
+    View -> View: расчёты (quantity, profit, график)
+    View --> User: asset.html
+end
+deactivate View
+@enduml

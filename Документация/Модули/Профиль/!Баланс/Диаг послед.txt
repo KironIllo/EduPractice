@@ -1,0 +1,13 @@
+@startuml
+actor Пользователь
+participant "Баланс" as View
+database БД
+
+Пользователь -> View: POST (income)
+activate View
+View -> БД: get_or_create Profile
+БД --> View: profile
+View -> БД: profile.balance += income
+View --> Пользователь: redirect home
+deactivate View
+@enduml

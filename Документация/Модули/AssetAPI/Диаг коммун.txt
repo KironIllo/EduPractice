@@ -1,0 +1,19 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Клиент" as Client
+node "API views\n(get_current_price, get_chart_data)" as API
+node "get_asset_price" as Util
+node "Генераторы графиков\n(metal/currency)" as Charts
+
+' --- get_current_price ---
+Client -- API : 1:Получить цену >\n3: {price} / error <
+API -- Util : 2: get_asset_price(ID) >
+Util -- API : 2b: цена или None <
+
+' --- get_chart_data ---
+Client -- API : 4: Получить график >\n6: {dates, prices} <
+API -- Charts : 5: вызов get_metal_price_history()\nили generate_chart_data() >
+Charts -- API : 5b: данные графика <
+@enduml

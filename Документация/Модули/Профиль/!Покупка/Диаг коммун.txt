@@ -1,0 +1,19 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Пользователь" as Client
+node "Buy view" as View
+node "get_asset_price" as Util
+node "База данных (Profile, Transaction)" as DB
+
+Client -- View : 1: GET /buy/<ID> >\n2: форма <
+Client -- View : 3: POST (количество) >\n8: redirect /history <
+View -- Util : 4: get_asset_price(ID) >
+Util -- View : 5: цена, nominal, unit <
+View -- DB : 6: get_or_create Profile >
+DB -- View : 7: profile <
+View -- View : 7a: проверка кратности, расчёт endprice >
+View -- DB : 8: profile.balance -= endprice >
+View -- DB : 9: сохранить Transaction (buy) >
+@enduml

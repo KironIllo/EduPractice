@@ -1,0 +1,22 @@
+@startuml
+participant "Вызывающий код" as Caller
+participant "get_currency_price" as Func
+participant "requests" as Req
+participant "API ЦБ" as API
+
+Caller -> Func: get_currency_price(currency_id)
+activate Func
+Func -> Req: GET запрос к API ЦБ
+activate Req
+Req -> API: HTTP запрос
+API --> Req: XML ответ
+Req --> Func: Response
+deactivate Req
+Func -> Func: Парсинг XML и поиск валюты
+alt валюта найдена
+    Func --> Caller: словарь с курсом
+else валюта не найдена
+    Func --> Caller: None
+end
+deactivate Func
+@enduml

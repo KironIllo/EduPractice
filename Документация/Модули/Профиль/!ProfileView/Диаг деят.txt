@@ -1,0 +1,19 @@
+@startuml
+|Пользователь|
+start
+:Открыть страницу /profile/;
+
+|Система (Profile_view)|
+:Получить или создать Profile;
+:Запросить все покупки (buys) и продажи (sells) из БД;
+:Сформировать словарь portfolio: группировка по активу,
+ расчёт quantity и total_cost;
+:Удалить активы с нулевым количеством;
+:Для каждого актива в портфеле:
+  - получить текущую цену через get_asset_price();
+  - рассчитать current_value, avg_price, profit, profit_percent;
+:Суммировать total_portfolio_value;
+:Рассчитать долю каждого актива в портфеле;
+:Отобразить profile.html с данными;
+stop
+@enduml

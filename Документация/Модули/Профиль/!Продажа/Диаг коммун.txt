@@ -1,0 +1,15 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Пользователь" as Client
+node "Sell view" as View
+node "База данных" as DB
+
+Client -- View : 1: GET /sell/ID >\n2: форма <
+Client -- View : 3: POST (количество) >\n8: redirect /history <
+View -- DB : 4: агрегировать bought и sold >\n5: available <
+View -- DB : 6: get_or_create Profile >\n7: profile <
+View -- DB : 8: profile.balance += endprice >
+View -- DB : 9: создать Transaction (sell) >
+@enduml

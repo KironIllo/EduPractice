@@ -4,7 +4,7 @@ from io import BytesIO
 import datetime as dt
 import urllib3
 from decimal import Decimal
-
+import xml.etree.ElementTree as ET
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Соответствие кодов металлов и их названий с русскими наименованиями
@@ -66,3 +66,51 @@ def get_all_metals():
                 metal_data['nominal'] # Номинал (всегда 1 для металлов)
             ])
     return metals
+
+def get_metal_price_history(metal_code, days=30):
+    from django.core.cache import cache
+    import xml.etree.ElementTree as ET
+    from datetime import datetime, timedelta
+
+    cache_key = f'metal_history_{metal_code}_{days}'
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days)
+    date_req1 = start_date.strftime('%d/%m/%Y')
+    date_req2 = end_date.strftime('%d/%m/%Y')
+    url = f'http://www.cbr.ru/scripts/xml_metall.asp?date_req1={date_req1}&date_req2={date_req2}'
+
+    try:
+        response = requests.get(url, verify=False, timeout=30)
+        response.raise_for_status()
+        root = ET.fromstring(response.content)
+        dates = []
+        prices = []
+        for record in root.findall('Record'):
+            code = record.get('Code')
+            if code and int(code) == metal_code:
+                buy = record.find('Buy')
+                if buy is not None and buy.text:
+                    price = Decimal(buy.text.replace(',', '.'))
+                    record_date = record.get('Date')
+                    if record_date:
+                        try:
+                            d = datetime.strptime(record_date, '%d.%m.%Y')
+                            dates.append(d.strftime('%d.%m'))
+                        except:
+                            dates.append(record_date[:-5])
+                    else:
+                        dates.append('')
+                    prices.append(float(price))
+        if len(dates) > days:
+            dates = dates[-days:]
+            prices = prices[-days:]
+        result = {'dates': dates, 'prices': prices}
+        cache.set(cache_key, result, 21600)  # 6 часов
+        return result
+    except Exception as e:
+        print(f"Ошибка получения истории металлов: {e}")
+        return {'dates': [], 'prices': []}

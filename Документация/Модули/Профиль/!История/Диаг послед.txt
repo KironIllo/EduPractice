@@ -1,0 +1,14 @@
+@startuml
+actor "Пользователь" as User
+participant "History view" as View
+database "БД" as DB
+
+User -> View: История
+activate View
+View -> DB: Transaction.objects.filter
+DB --> View: список транзакций (hist)
+View -> DB: Profile.objects.get_or_create
+DB --> View: profile (баланс)
+View --> User: render history.html
+deactivate View
+@enduml

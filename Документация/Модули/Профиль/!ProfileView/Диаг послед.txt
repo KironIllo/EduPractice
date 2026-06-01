@@ -1,0 +1,22 @@
+@startuml
+actor "Пользователь" as User
+participant "Profile_view" as View
+database "БД" as DB
+participant "get_asset_price" as Util
+
+User -> View: Профиль
+activate View
+View -> DB: get_or_create Profile
+DB --> View: profile
+View -> DB: filter покупки и продажи
+DB --> View: транзакции
+View -> View: агрегация портфеля
+loop каждый актив
+    View -> Util: get_asset_price(id)
+    Util --> View: цена
+    View -> View: расчёт current_value, profit
+end
+View -> View: total_portfolio_value, доли
+View --> User: profile.html
+deactivate View
+@enduml

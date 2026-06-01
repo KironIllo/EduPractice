@@ -1,0 +1,12 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Пользователь" as Client
+node "Balance view" as View
+node "База данных" as DB
+
+Client -- View : 1: GET /balance/ >\n2: форма <
+Client -- View : 3: POST (income) >\n5: redirect home <
+View -- DB : 4: profile.balance += income >
+@enduml

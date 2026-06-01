@@ -1,0 +1,22 @@
+@startuml
+actor "Пользователь" as User
+participant "Продажа" as View
+database "БД" as DB
+
+User -> View: GET /sell/ID
+View -> DB: aggregate сумма покупок и продаж
+DB --> View: available
+View --> User: форма sell.html (GET)
+
+User -> View: POST (count)
+activate View
+View -> View: проверка кратности, endprice
+alt count <= available
+    View -> DB: profile.balance += endprice
+    View -> DB: создать Transaction (sell)
+    View --> User: redirect history
+else
+    View --> User: ошибка "недостаточно актива"
+end
+deactivate View
+@enduml

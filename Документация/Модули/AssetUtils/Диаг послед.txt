@@ -1,0 +1,17 @@
+@startuml
+participant "Вызывающий код" as Caller
+participant "get_asset_price" as Util
+participant "get_metal_currency_price" as Price
+
+Caller -> Util: get_asset_price(ID)
+activate Util
+Util -> Util: определить тип актива
+alt металл
+    Util -> Price: get_metal_price(ID)
+else валюта
+    Util -> Price: get_currency_price(ID)
+end
+Price --> Util: данные или None
+Util --> Caller: словарь с ценой и unit (шт/гр)
+deactivate Util
+@enduml

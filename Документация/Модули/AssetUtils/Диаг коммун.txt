@@ -1,0 +1,17 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Вызывающий код" as Caller
+node "get_asset_price" as Util
+node "get_metal_price" as Metal
+node "get_currency_price" as Currency
+
+Caller -- Util : 1: get_asset_price(asset_id) >
+Util -- Util : 2: определить тип актива >
+Util -- Metal : 3a (если металл): get_metal_price() >
+Metal -- Util : 4a: данные металла >
+Util -- Currency : 3b (если валюта): get_currency_price() >
+Currency -- Util : 4b: данные валюты >
+Util -- Caller : 5: возврат словаря <
+@enduml

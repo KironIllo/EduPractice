@@ -1,0 +1,12 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Пользователь" as Client
+node "Profile_view" as View
+node "База данных" as DB
+
+Client -- View : 1: GET /profile/ >\n3: profile.html <
+View -- DB : 2: получить Profile + транзакции >\n2b: данные <
+View -- View : 2c: расчёт портфеля и метрик >
+@enduml

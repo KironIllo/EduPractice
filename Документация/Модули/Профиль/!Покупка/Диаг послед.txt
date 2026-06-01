@@ -1,0 +1,27 @@
+@startuml
+actor "Пользователь" as User
+participant "Покупка" as View
+participant "get_asset_price" as Util
+database "БД" as DB
+
+User -> View: Покупка
+View -> Util: get_asset_price(ID)
+Util --> View: asset (цена, nominal)
+View -> DB: get_or_create Profile
+DB --> View: profile
+View --> User: форма buy.html (GET)
+
+User -> View: POST (count)
+activate View
+View -> Util: get_asset_price(ID) (снова для свежей цены)
+Util --> View: price
+View -> View: проверка кратности, endprice
+alt balance >= endprice
+    View -> DB: profile.balance -= endprice
+    View -> DB: создать Transaction (buy)
+    View --> User: redirect history
+else недостаточно средств
+    View --> User: ошибка, форма с сообщением
+end
+deactivate View
+@enduml

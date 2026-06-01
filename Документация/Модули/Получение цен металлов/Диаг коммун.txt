@@ -1,0 +1,15 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Вызывающий код" as Caller
+node "get_metal_price" as Func
+node "API ЦБ РФ" as CBR
+
+Caller -- Func : 1: get_metal_price(metal_code) >
+Func -- CBR : 2: HTTP запрос (с датой-2) >
+CBR -- Func : 3: XML ответ <
+Func -- Func : 4: парсинг, поиск металла
+Func -- Caller : 5: вернуть словарь или None <
+
+@enduml

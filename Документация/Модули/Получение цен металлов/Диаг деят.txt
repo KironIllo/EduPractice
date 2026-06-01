@@ -1,0 +1,24 @@
+@startuml
+|Вызывающий код|
+start
+:Вызвать get_metal_price(metal_code);
+
+|Функция get_metal_price|
+:Сформировать дату (текущая - 2 дня);
+:Построить URL для запроса;
+:Выполнить GET-запрос к API ЦБ;
+if (Ответ успешен?) then (да)
+  :Прочитать XML через pandas;
+  :Преобразовать в словарь;
+  :Перебрать записи в поисках metal_code;
+  if (Металл найден?) then (да)
+    :Извлечь цену (Buy), заменить запятую на точку;
+    :Вернуть словарь с данными (code, name, price, nominal, char_code, unit);
+  else (нет)
+    :Вернуть None;
+  endif
+else (нет)
+  :Вернуть None;
+endif
+stop
+@enduml

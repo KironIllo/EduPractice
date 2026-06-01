@@ -1,0 +1,21 @@
+@startuml
+node "Клиентский браузер" as Client
+node "Сервер приложений (Django)\nLinux/Windows" as AppServer {
+  artifact "Django application" as DjangoApp
+  artifact "Gunicorn/uWSGI" as WSGI
+  artifact "Кэш (локальный или Memcached)" as CacheServer
+}
+node "Сервер базы данных" as DBServer {
+  artifact " SQLite" as DB
+}
+node "Сервер SMTP (Gmail)" as SMTP_Server
+node "API ЦБ РФ" as CBR_Server
+
+Client --> AppServer : HTTPS (HTTP)
+AppServer --> DBServer : TCP (DB connection)
+AppServer --> CBR_Server : HTTPS (запросы курсов)
+AppServer --> SMTP_Server : SMTP (письма)
+AppServer --> CacheServer : (внутреннее, если in-memory)
+
+DjangoApp ..> WSGI : развернуто на
+@enduml

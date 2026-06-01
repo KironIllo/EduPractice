@@ -1,0 +1,33 @@
+@startuml
+|Пользователь|
+start
+:Открыть страницу актива;
+
+|Система (AssetDetail)|
+:Вызвать get_asset_price(ID);
+if (актив не найден?) then (да)
+  :Вернуть error.html;
+else (нет)
+  :Получить транзакции пользователя из БД;
+  :Рассчитать quantity, avg_price, total_cost;
+  :Рассчитать current_value, profit, profit_percent;
+
+  |Система (генерация графика)|
+  if (ID.isdigit()?) then (металл)
+    :Вызвать get_metal_price_history(ID);
+  else (валюта)
+    :Проверить кэш графика;
+    if (кэш пуст) then
+      :Вызвать generate_chart_data(ID) (с retry);
+      :Сохранить в кэш на 6 часов;
+    else
+      :Взять данные из кэша;
+    endif
+  endif
+
+  |Система (AssetDetail)|
+  :Получить баланс пользователя из Profile;
+  :Отобразить asset.html с контекстом;
+endif
+stop
+@enduml

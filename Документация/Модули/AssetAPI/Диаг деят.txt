@@ -1,0 +1,23 @@
+@startuml
+|Клиент|
+start
+fork
+  :Запрос цены;
+  |get_current_price|
+  if (актив найден?) then (да)
+    :JSON {price};
+  else (нет)
+    :JSON ошибки;
+  endif
+fork again
+  :Запрос Графика;
+  |get_chart_data|
+  if (ID цифра?) then (да)
+    :get_metal_price_history();
+  else (нет)
+    :generate_chart_data();
+  endif
+  :JSON графика;
+end fork
+stop
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+actor "Пользователь" as User
+actor "Email сервер" as EmailSystem <<внешняя система>>
+actor "Банк России API" as CBR <<внешняя система>>
+
+rectangle "Инвестиционный портфель" {
+  usecase "Регистрация" as UC1
+  usecase "Вход в систему" as UC2
+  usecase "Выход из системы" as UC3
+  usecase "Просмотр портфеля" as UC4
+  usecase "Покупка актива" as UC5
+  usecase "Продажа актива" as UC6
+  usecase "Пополнение баланса" as UC7
+  usecase "Просмотр истории транзакций" as UC8
+  usecase "Просмотр деталей актива\n(с графиком)" as UC9
+  usecase "Изменение пароля" as UC10
+  usecase "Удаление аккаунта" as UC11
+  usecase "Получение курсов валют/металлов" as UC12
+  usecase "Отправка email с кодом" as UC13
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+
+UC1 ..> UC13 : <<include>>
+UC12 ..> UC5 : <<include>>
+UC12 ..> UC6 : <<include>>
+UC12 ..> UC9 : <<include>>
+
+CBR --> UC12
+EmailSystem --> UC13
+@enduml

@@ -1,0 +1,40 @@
+@startuml
+package "Веб-приложение Django" {
+  component "Модуль аутентификации\n(regi.py, logi.py, editi.py)" as Auth
+  component "Модуль профиля и транзакций\n(profile.py)" as Profile
+  component "Модуль просмотра активов\n(asset.py)" as Asset
+  component "Модуль API\n(asset_api.py)" as API
+  component "Утилиты получения цен\n(asset_utils.py, prices.py, metals_api.py)" as Utils
+  component "Email сервис\n(regEmailCode.py)" as Email
+  component "ORM (Django models)\n(Profile, Transaction, User)" as ORM
+  component "Шаблоны HTML" as Templates
+}
+
+database "База данных (SQLite)" as DB
+node "Кэш (Django cache)" as Cache
+node "Внешний API ЦБ РФ" as CBR
+node "SMTP сервер (Gmail)" as SMTP
+
+Auth --> ORM
+Auth --> Email
+Auth --> Templates
+
+Profile --> ORM
+Profile --> Utils
+Profile --> Templates
+
+Asset --> Utils
+Asset --> ORM
+Asset --> Cache
+Asset --> Templates
+
+API --> Utils
+API --> Asset
+API --> Cache
+
+Utils --> CBR
+Email --> SMTP
+
+ORM --> DB
+Cache --> DB
+@enduml

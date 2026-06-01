@@ -1,0 +1,102 @@
+@startuml
+class User {
+  +username: str
+  +password: str
+  +email: str
+  +last_login: datetime
+  +is_active: bool
+  +login()
+  +logout()
+}
+
+class Profile {
+  +user: ForeignKey(User)
+  +balance: Decimal
+  +get_or_create()
+}
+
+class Transaction {
+  +user: ForeignKey(User)
+  +moneyid: str
+  +money: str
+  +transaction_type: str
+  +count: Decimal
+  +price: Decimal
+  +endprice: Decimal
+  +created_at: datetime
+}
+
+class TransactionForm {
+  +fields
+  +is_valid()
+  +save()
+}
+
+class EmailService {
+  -smtp_server: str
+  -smtp_port: int
+  -username: str
+  -password: str
+  +generate_verification_code()
+  +send_verification_code(to_email)
+}
+
+class AssetUtils {
+  +get_asset_price(asset_id)
+}
+
+class MetalsAPI {
+  +get_metal_price(metal_code)
+  +get_all_metals()
+  +get_metal_price_history(metal_code, days)
+}
+
+class PricesAPI {
+  +get_currency_price(currency_id)
+}
+
+class AssetView {
+  +AssetDetail(request, ID)
+  +generate_chart_data(currency_id, days)
+}
+
+class AssetAPIView {
+  +get_current_price(request, ID)
+  +get_chart_data(request, ID)
+}
+
+class ProfileView {
+  +Profile_view(request)
+  +History(request)
+  +Buy(request, ID)
+  +Sell(request, ID)
+  +Balance(request)
+}
+
+class AuthView {
+  +login_view(request)
+  +logout_view(request)
+  +signup(request)
+  +Edit(request)
+  +Delete(request)
+}
+
+User "1" -- "1" Profile
+User "1" -- "0..*" Transaction
+
+AssetUtils --> MetalsAPI : использует
+AssetUtils --> PricesAPI : использует
+
+AssetView --> AssetUtils : использует
+AssetAPIView --> AssetUtils : использует
+AssetView --> MetalsAPI : использует (для истории)
+
+ProfileView --> AssetUtils : использует
+ProfileView --> Transaction : CRUD
+ProfileView --> Profile : CRUD
+
+AuthView --> EmailService : использует
+AuthView --> User : регистрация/аутентификация
+AuthView --> Profile : создание
+
+@enduml

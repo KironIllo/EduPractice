@@ -1,0 +1,15 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Вызывающий код" as Caller
+node "get_currency_price" as Func
+node "API ЦБ РФ" as CBR
+
+Caller -- Func : 1: get_currency_price(currency_id) >
+Func -- CBR : 2: HTTP GET (запрос курса) >
+CBR -- Func : 3: XML ответ с курсами <
+Func -- Func : 4: Парсинг и поиск валюты
+Func -- Caller : 5: Вернуть словарь с курсом (или None) <
+
+@enduml

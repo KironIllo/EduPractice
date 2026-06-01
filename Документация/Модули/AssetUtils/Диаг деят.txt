@@ -1,0 +1,26 @@
+@startuml
+|Вызывающий код|
+start
+:Вызвать get_asset_price(asset_id);
+
+|Система (asset_utils)|
+:Преобразовать asset_id в строку;
+if (ID цифра и 1-4?) then (металл)
+  :Вызвать get_metal_price(int(ID));
+  if (металл найден?) then (да)
+    :Вернуть словарь с unit='г';
+  else (нет)
+    :Вернуть None;
+  endif
+elseif (ID начинается с R?) then (валюта)
+  :Вызвать get_currency_price(ID);
+  if (валюта найдена?) then (да)
+    :Вернуть словарь с unit='шт';
+  else (нет)
+    :Вернуть None;
+  endif
+else (неизвестный тип)
+  :Вернуть None;
+endif
+stop
+@enduml

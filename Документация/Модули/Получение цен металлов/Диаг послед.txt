@@ -1,0 +1,17 @@
+@startuml
+participant "Вызывающий функцию" as Caller
+participant "get_metal_price" as Func
+participant "API ЦБ" as API
+
+Caller -> Func: get_metal_price(metal_code)
+activate Func
+Func -> API: HTTP запрос (дата - 2 дня)
+API --> Func: XML ответ
+Func -> Func: парсинг и поиск металла
+alt металл найден
+    Func --> Caller: словарь с ценой
+else металл не найден или ошибка
+    Func --> Caller: None
+end
+deactivate Func
+@enduml

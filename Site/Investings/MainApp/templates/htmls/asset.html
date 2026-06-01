@@ -346,9 +346,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 document.querySelectorAll('.chart-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
         const days = this.dataset.days;
         fetch(`/api/chart-data/{{ asset_id }}/?days=${days}`)
             .then(res => res.json())

@@ -1,0 +1,20 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle uml2
+
+node "Пользователь" as Client
+node "AssetDetail view" as View
+node "get_asset_price" as Util
+node "База данных" as DB
+node "Кэш + generate_chart_data" as ChartCache
+
+Client -- View : 1: GET /asset/<ID> >\n7: HTTP OK (asset.html) <
+
+View -- Util : 2: get_asset_price(ID) >
+Util -- View : 3: цена, единица <
+
+View -- DB : 4: запрос транзакций и профиля >\n5: данные пользователя <
+View -- View : 6: расчёт quantity, profit, графика >
+View -- ChartCache : 7: получение/генерация графика (с кэшем) >
+ChartCache -- View : 8: данные графика <
+@enduml

@@ -55,9 +55,12 @@ def AssetDetail(request, ID):
     profit = current_value - total_cost
     profit_percent = (profit / total_cost) * 100 if total_cost > 0 else Decimal('0')
 
-    # Данные для графика (только для валют)
+
     chart_data = {'dates': [], 'prices': []}
-    if not str(ID).isdigit():
+    if str(ID).isdigit():
+        from MainApp.modules.metals_api import get_metal_price_history
+        chart_data = get_metal_price_history(int(ID), days=30)
+    else:
         chart_data = generate_chart_data(ID)
 
     profile = None
@@ -87,48 +90,47 @@ def AssetDetail(request, ID):
 def generate_chart_data(currency_id, days=30):
     """
     Генерирует данные для графика изменения цены валюты за последние N дней.
-    Работает только для валют (ID начинается с R). Для металлов возвращает пустой словарь.
+    Результат кешируется на 6 часов.
     """
+    from django.core.cache import cache
     import requests
     import pandas as pd
     from io import BytesIO
     from datetime import datetime, timedelta
+    import time
 
-    chart_data = {
-        'dates': [],
-        'prices': []
-    }
+    cache_key = f'currency_chart_{currency_id}_{days}'
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
 
-    try:
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
+    chart_data = {'dates': [], 'prices': []}
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days)
 
-        current_date = start_date
-        while current_date <= end_date:
+    current_date = start_date
+    while current_date <= end_date:
+        for attempt in range(3):  # 3 попытки
             try:
                 date_str = current_date.strftime("%d/%m/%Y")
                 url = f'https://www.cbr.ru/scripts/XML_daily.asp?date_req={date_str}'
-
-                response = requests.get(url, verify=False, timeout=5)
+                response = requests.get(url, verify=False, timeout=30)
                 response.raise_for_status()
-
-                # Парсим XML в DataFrame
                 prices = pd.read_xml(BytesIO(response.content), encoding='Windows-1251').to_dict()
-
-                # Ищем нужную валюту по ID
                 for i in prices["ID"]:
                     if prices['ID'][i] == currency_id:
                         price = float(prices['VunitRate'][i].replace(',', '.'))
                         chart_data['dates'].append(current_date.strftime('%d.%m'))
                         chart_data['prices'].append(price)
                         break
-
+                break  # успешно — выходим из цикла попыток
             except Exception as e:
-                print(f"Ошибка получения данных за {current_date}: {e}")
+                if attempt == 2:
+                    print(f"Ошибка получения данных за {current_date}: {e}")
+                else:
+                    time.sleep(2)  # пауза перед повторной попыткой
+        current_date += timedelta(days=1)
 
-            current_date += timedelta(days=1)
-
-    except Exception as e:
-        print(f"Ошибка генерации графика: {e}")
-
+    # Кешируем на 6 часов (21600 секунд)
+    cache.set(cache_key, chart_data, 21600)
     return chart_data
