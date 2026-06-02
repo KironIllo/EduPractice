@@ -51,6 +51,7 @@
 
         <!-- Список валют (динамически обновляется) -->
         <!-- Замените блок с валютой на этот -->
+        {% if prices %}
         <ul id="currencyList">
             {% for value in prices %}
             <li data-id="{{ value.0 }}" data-name="{{ value.1 }}" data-price="{{ value.2 }}" data-country="{{ value.3 }}">
@@ -80,6 +81,10 @@
             </li>
             {% endfor %}
         </ul>
+        {% elif errorAPI %}
+        <h1>Sorry, we can't access CBR for prices now</h1>
+        <h2>{{ errorAPI }}</h2>
+        {% endif %}
         {% endblock %}
 
         {% block login %}

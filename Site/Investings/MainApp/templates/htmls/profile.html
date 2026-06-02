@@ -15,7 +15,7 @@
             </div>
         </div>
     </div>
-
+{% block confirm %}
     <div class="profile-stats">
         <div class="stat-card">
             <div class="stat-icon">
@@ -123,5 +123,5 @@
         <span>{{ time|date:"d.m.Y" }} {{ time|time:"H:i" }}</span>
     </div>
 </div>
-{% block confirm %}{% endblock %}
+{% endblock %}
 {% endblock %}

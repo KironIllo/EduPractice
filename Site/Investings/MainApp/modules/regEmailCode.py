@@ -44,6 +44,7 @@ class EmailService:
             server.login(self.username, self.password)
             server.sendmail(self.username, to_email, msg.as_string())
             server.quit()
+            print(text_body)
             print(f'Код подтверждения отправлен на {to_email}')
             return {'success': True, 'code': code}
         except Exception as e:

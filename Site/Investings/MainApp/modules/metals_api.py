@@ -22,7 +22,7 @@ def get_metal_price(metal_code):
     """
     try:
 
-        date = dt.datetime.now() - dt.timedelta(days=2)
+        date = dt.datetime.now() - dt.timedelta(days=3)
         day = date.strftime("%d")
         month = date.strftime("%m")
         year = date.strftime("%Y")

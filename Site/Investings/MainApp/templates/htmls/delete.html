@@ -1,10 +1,13 @@
 {% extends 'htmls/profile.html' %}
 
 {% block confirm %}
+{% if errorPS %}
+    <h3>{{ errorPS }}</h3>
+{% endif %}
 <form method="post">
     {% csrf_token %}
     <label for="password">Confirm Deleting (Password): </label>
     <input id="password" type="password" name="password">
-    <input type="submit" value="OK">
+    <input type="submit" class="btn-sell-small" value="OK">
 </form>
 {% endblock %}

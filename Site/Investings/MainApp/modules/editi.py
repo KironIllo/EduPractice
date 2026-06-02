@@ -16,10 +16,13 @@ def Edit(request):
 
 def Delete(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
+    errorUser = None
     if request.method == 'POST':
         user = authenticate(username=request.user.username, password=request.POST.get('password'))
         if user is not None:
             logout(request)
             user.delete()
             return redirect('home')
-    return render(request, 'htmls/delete.html', {'balance': profile.balance})
+        else:
+            errorUser = 'WrongPassword'
+    return render(request, 'htmls/delete.html', {'balance': profile.balance, 'errorPS': errorUser})

@@ -39,7 +39,7 @@ def Main(request):
 
     except Exception as e:
         logger.error(f"Ошибка: {e}")
-        return render(request, 'htmls/main.html', {'prices': []})
+        return render(request, 'htmls/main.html', {'prices': [], 'errorAPI': e})
 
 def Metals(request):
     """Страница драгоценных металлов"""
